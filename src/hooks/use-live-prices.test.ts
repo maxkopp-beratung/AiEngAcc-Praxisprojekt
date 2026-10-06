@@ -283,3 +283,61 @@ describe("useLivePrices", () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 })
+
+// PROJ-3: the page-wide LivePricesProvider starts the hook without a payload and adopts the
+// price section's server payload via handover (PROJ-3 design.md → LivePricesProvider).
+describe("useLivePrices without a payload (handover)", () => {
+  it("starts with null and takes the first handed-over payload without fetching", async () => {
+    vi.setSystemTime(new Date("2026-10-06T10:07:30Z"))
+    const { result } = renderHook(() => useLivePrices(null))
+    expect(result.current.payload).toBeNull()
+
+    act(() => result.current.handover(TOMORROW_MISSING))
+    expect(result.current.payload).toBe(TOMORROW_MISSING)
+    await advance(0)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("ignores every handover after the first one", () => {
+    vi.setSystemTime(new Date("2026-10-06T10:07:30Z"))
+    const { result } = renderHook(() => useLivePrices(null))
+    act(() => result.current.handover(TOMORROW_MISSING))
+    act(() => result.current.handover(BOTH_OK))
+    expect(result.current.payload).toBe(TOMORROW_MISSING)
+  })
+
+  it("ignores a handover when it was started with a payload", () => {
+    vi.setSystemTime(new Date("2026-10-06T10:07:30Z"))
+    const { result } = renderHook(() => useLivePrices(BOTH_OK))
+    act(() => result.current.handover(TOMORROW_MISSING))
+    expect(result.current.payload).toBe(BOTH_OK)
+  })
+
+  it("keeps the clock ticking but fetches nothing while it has no payload, also over midnight", async () => {
+    vi.setSystemTime(new Date("2026-10-06T21:44:00Z"))
+    const { result } = renderHook(() => useLivePrices(null))
+
+    await advance(1 * MIN)
+    expect(result.current.now.toISOString()).toBe("2026-10-06T21:45:00.000Z")
+    await advance(15 * MIN) // day change in Berlin
+    expect(result.current.now.toISOString()).toBe("2026-10-06T22:00:00.000Z")
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(result.current.payload).toBeNull()
+  })
+
+  it("starts the conditional refetch at the next slot boundary after the handover (AC-20)", async () => {
+    vi.setSystemTime(new Date("2026-10-06T10:07:30Z"))
+    const fresh = payload(okDay("2026-10-06"), okDay("2026-10-07"), "2026-10-06T10:15:00.000Z")
+    fetchMock.mockResolvedValueOnce(jsonResponse(fresh))
+    const { result } = renderHook(() => useLivePrices(null))
+    act(() => result.current.handover(TOMORROW_MISSING))
+
+    await advance(7.5 * MIN)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(result.current.payload).toEqual(fresh)
+  })
+})
