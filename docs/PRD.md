@@ -29,6 +29,7 @@ Alles darüber hinaus (Benachrichtigungen, Endkundenpreise, Smart-Home) kommt be
 - Environment strategy: single
 - Hosting: kein Deployment. Die App läuft lokal (`npm run dev`), die Datenbank in Supabase Cloud.
 - Data region: eu-central-1 (Frankfurt)
+- **Supabase-Projekt:** „Automatically expose new tables“ ist aus, „automatic RLS“ ist an. Neue Tabellen sind also nicht automatisch über die Data API erreichbar: Jede Migration aktiviert RLS ausdrücklich und vergibt die nötigen Rechte per `GRANT` (z. B. an `authenticated`), sonst schlagen Zugriffe mit „permission denied“ fehl.
 - Data protection law: GDPR (EU/DE)
 - Data protection stance: lean
 - Design system: see `docs/design-system.md`
