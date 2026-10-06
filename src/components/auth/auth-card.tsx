@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Logo } from "@/components/logo";
 
 type AuthCardProps = {
   title: string;
@@ -13,7 +14,7 @@ export function AuthCard({ title, description, children, footer }: AuthCardProps
   return (
     <Card className="shadow-none">
       <CardHeader className="space-y-2">
-        <p className="text-sm font-semibold text-primary">WattWann</p>
+        <Logo className="text-base" markClassName="h-7 w-7" />
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
         {description ? <div className="text-sm text-muted-foreground">{description}</div> : null}
       </CardHeader>

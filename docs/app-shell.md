@@ -26,8 +26,8 @@ Owner: PROJ-1 (Benutzerkonto & Login) – liefert den geschützten Bereich `/das
 
 ## Layout
 
-- **Dashboard:** Kopfzeile (`AppHeader`) mit App-Name links und einem Menü rechts. Das Menü zeigt den Anzeigenamen oder die E-Mail-Adresse und enthält „Anzeigename ändern“, „Datenschutz“, „Konto löschen“ und „Abmelden“. Darunter steht der Inhalt einspaltig mit dem Seitentitel „Übersicht“, PROJ-2 und PROJ-3 hängen ihre Abschnitte darunter ein. Keine Seitenleiste.
-- **Auth-Seiten** (`/login`, `/signup`, Reset, Link-Hinweise): ohne Kopfzeile, eine zentrierte Karte (`AuthCard`), unten Links zu „Datenschutz“ und zur jeweils anderen Auth-Seite.
+- **Dashboard:** Kopfzeile (`AppHeader`) mit Logo und Schriftzug links (Link zur Übersicht) und einem Menü rechts. Das Menü zeigt den Anzeigenamen oder die E-Mail-Adresse und enthält „Anzeigename ändern“, „Datenschutz“, „Konto löschen“ und „Abmelden“. Darunter steht der Inhalt einspaltig mit dem Seitentitel „Übersicht“, PROJ-2 und PROJ-3 hängen ihre Abschnitte darunter ein. Keine Seitenleiste.
+- **Auth-Seiten** (`/login`, `/signup`, Reset, Link-Hinweise): ohne Kopfzeile, eine zentrierte Karte (`AuthCard`) mit Logo oben, unten Links zu „Datenschutz“ und zur jeweils anderen Auth-Seite.
 - **`/datenschutz`:** ohne Kopfzeile, einspaltiger Text mit Link „Zurück“.
 - **Weiterleitungen:** `/` führt angemeldet zu `/dashboard`, sonst zu `/login`. Wer nicht angemeldet `/dashboard` aufruft, landet auf `/login` und danach wieder dort. Wer angemeldet `/login` oder `/signup` aufruft, landet auf `/dashboard`.
 - **Rückmeldungen:** ein Toaster für die ganze App (im Root-Layout).

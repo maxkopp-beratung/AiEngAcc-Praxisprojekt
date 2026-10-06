@@ -7,6 +7,13 @@
 
 Ruhig, klar, freundlich. Grün bedeutet „jetzt günstig“, Bernstein bedeutet „jetzt teuer“. Die Preise stehen im Mittelpunkt, alles andere tritt zurück. Die Zielgruppe sind Laien – keine Fachbegriffe ohne Erklärung.
 
+## Logo
+
+- **Bildzeichen „Preis-Tal“:** die Preiskurve eines Tages als Tal, ein Punkt markiert den günstigsten Moment. Weiße Linie auf `primary`, abgerundetes Quadrat (Radius 14/64).
+- **Schriftzug:** „Watt“ in `foreground`, „Wann“ in `primary`, Inter 600.
+- **Dateien:** Komponente `src/components/logo.tsx` (`Logo`, `LogoMark`, folgt hell/dunkel über die Tokens), Browser-Icon `src/app/icon.svg`, Homescreen-Icon `src/app/apple-icon.png`.
+- **In Mails** nur der zweifarbige Schriftzug: Gmail zeigt keine SVGs an, und ein Bild von `localhost` kann der Mail-Client nicht laden.
+
 ## Farben
 
 | Token | Hell | Dunkel | Einsatz |

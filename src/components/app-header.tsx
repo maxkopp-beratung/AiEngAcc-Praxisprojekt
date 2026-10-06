@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown, LogOut, Pencil, ShieldCheck, Trash2, UserRound } from "lucide-react";
 import { logout } from "@/lib/auth/actions/logout";
 import { DeleteAccountDialog, DisplayNameDialog } from "@/components/account-dialogs";
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,9 +30,10 @@ export function AppHeader({ displayName, email }: AppHeaderProps) {
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 md:px-6">
         <Link
           href="/dashboard"
-          className="rounded-sm text-lg font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label="WattWann – zur Übersicht"
+          className="rounded-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          WattWann
+          <Logo />
         </Link>
 
         <DropdownMenu>
