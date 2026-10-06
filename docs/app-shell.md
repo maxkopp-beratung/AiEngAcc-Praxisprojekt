@@ -22,6 +22,7 @@ Owner: PROJ-1 (Benutzerkonto & Login) – liefert den geschützten Bereich `/das
 | `/auth/confirm` | (Endpunkt) Link aus der Mail prüfen und weiterleiten | alle | PROJ-1 |
 | `/auth/link-invalid` | Hinweis „Link ungültig oder abgelaufen“, neuen Link anfordern | alle | PROJ-1 |
 | `/datenschutz` | Datenschutzhinweise lesen | alle | PROJ-1 |
+| `/api/prices` | (Endpunkt) Strompreise für heute und morgen, vom Abschnitt „Strompreise“ zum Aktualisieren abgefragt | angemeldet (sonst 401) | PROJ-2 |
 | `/dashboard` | Preise ansehen, Geräte verwalten, Empfehlungen sehen | angemeldet | Rahmen: PROJ-1 · Abschnitt „Strompreise“: PROJ-2 · Abschnitt „Meine Geräte“: PROJ-3 |
 
 ## Layout
