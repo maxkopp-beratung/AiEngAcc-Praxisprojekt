@@ -50,6 +50,7 @@ Dialog / Menü ── Server Action (POST) ──────► anlegen / ände
             |             • lädt            – Skeleton-Zeile, solange noch keine Preise da sind
             |             • nicht verfügbar – Text aus AC-23
             |             • zu wenig Preise – Text aus AC-18
+            |             • Preislücken     – Text aus EC-14
             |             • Empfehlung      – AC-15 bzw. AC-17, darunter Vergleich (AC-16, EC-3, EC-4)
             |                                 und ggf. Hinweis „Preise für morgen fehlen“ (AC-19)
             +-- DeviceDialog (ein Dialog für Anlegen und Bearbeiten)                          (AC-4–8, AC-11, AC-24)
@@ -128,15 +129,16 @@ Dialog / Menü ── Server Action (POST) ──────► anlegen / ände
 
 Eingaben: das Preis-Paket aus dem gemeinsamen Preis-Zustand (heute, morgen), „jetzt“ und die Laufzeit in Minuten. Ausgabe: genau einer der Zustände
 - `prices_unavailable` – heute hat den Status `error` (AC-23)
-- `not_enough_prices` – kein zulässiges Fenster (AC-18)
+- `not_enough_prices` – die Laufzeit ist länger als der bekannte Zeitraum (AC-18, EC-6)
+- `price_gaps` – die Laufzeit passt in den bekannten Zeitraum, aber jedes Fenster enthält einen Slot ohne Preis (EC-14)
 - `recommendation` – mit Start, Ende und Durchschnitt des besten Fensters, „beginnt jetzt“ ja/nein, Durchschnitt bei sofortigem Start (oder keiner), Ersparnis und „morgen fehlt“ ja/nein
 
 Die Rechnung:
 1. **Bekannter Zeitraum (AC-13):** die Slots von heute, ab dem aktuellen Slot (erster Slot, dessen Ende nach „jetzt“ liegt), gefolgt von allen Slots von morgen, falls morgen den Status `ok` hat. Die Slots sind lückenlos aufeinanderfolgende UTC-Zeitpunkte, auch über Mitternacht.
 2. **Fensterlänge:** n = Laufzeit ÷ 15 Slots. Weil in Slots und nicht in Uhrzeiten gezählt wird, gilt immer die echte Laufzeit, auch über eine Zeitumstellung (EC-1, EC-2).
-3. **Zulässige Fenster:** alle n aufeinanderfolgenden Slots im bekannten Zeitraum, beginnend an jeder Slot-Grenze ab dem aktuellen Slot, bei denen **jeder Slot einen Preis hat**. Gibt es keins → `not_enough_prices` (AC-18, EC-5, EC-6).
+3. **Zulässige Fenster:** alle n aufeinanderfolgenden Slots im bekannten Zeitraum, beginnend an jeder Slot-Grenze ab dem aktuellen Slot, bei denen **jeder Slot einen Preis hat** (EC-14). Slots ohne Preis zählen zum bekannten Zeitraum (er reicht bis zum letzten Slot eines veröffentlichten Tages), sind aber in keinem zulässigen Fenster. Ist der bekannte Zeitraum kürzer als n Slots → `not_enough_prices` (AC-18, EC-6; genau n Slots sind erlaubt, EC-5). Ist er lang genug, aber kein Fenster zulässig → `price_gaps` (EC-14).
 4. **Bestes Fenster (AC-14):** niedrigster Durchschnittspreis; bei Gleichstand das früheste. Verglichen wird die Summe der Preise, umgerechnet in ganze Hundertstel EUR/MWh, damit Gleichstand exakt erkannt wird und kein Rundungsrauschen der Gleitkommazahlen entscheidet. Das Fenster wird in einem Durchlauf mit gleitender Summe gesucht.
-5. **„Sofort“-Fenster:** das Fenster ab dem aktuellen Slot. Ist es zulässig, ist sein Durchschnitt der Vergleichswert; ist es nicht zulässig (Preislücke darin), gibt es keine Vergleichszeile.
+5. **„Sofort“-Fenster:** das Fenster ab dem aktuellen Slot. Ist es zulässig, ist sein Durchschnitt der Vergleichswert; ist es nicht zulässig (Preislücke darin), gibt es keine Vergleichszeile, und „beginnt jetzt“ kann nicht eintreten (EC-14).
 6. **„beginnt jetzt“** = das beste Fenster beginnt im aktuellen Slot → AC-17, keine Vergleichszeile.
 7. **„morgen fehlt“** = morgen hat nicht den Status `ok` → Zusatzzeile AC-19.
 
@@ -152,7 +154,7 @@ Die Rechnung:
 - Prozent = Ersparnis ÷ gerundeter Sofort-Durchschnitt × 100, kaufmännisch auf ganze Prozent gerundet, Anzeige „(28 %)“ mit geschütztem Leerzeichen.
 - Sofort-Durchschnitt (gerundet) 0 oder negativ → keine Prozentangabe, nur die Differenz (EC-3).
 - Ersparnis = 0,0 (die beiden angezeigten Durchschnitte sind gleich, obwohl das Fenster später beginnt) → „Sofort: Ø [Preis] ct/kWh – kaum Unterschied (unter 0,1 ct/kWh)“ (EC-4).
-- Laufzeit im Hinweis AC-18 im Format „H:MM“, z. B. „Für 4:00 h sind noch nicht genug Preise bekannt. …“
+- Laufzeit in den Hinweisen AC-18 und EC-14 im Format „H:MM“, z. B. „Für 4:00 h sind noch nicht genug Preise bekannt. …“
 
 ## Behaviors & Access
 
@@ -228,7 +230,7 @@ Keine neuen Pakete. Genutzt werden die vorhandenen: `zod`, `react-hook-form` + `
   - Umstellung auf Sommerzeit: 2:30 h ab 01:30 endet 05:00 (EC-1); Umstellung auf Winterzeit mit „MESZ“/„MEZ“ (EC-2)
   - morgen fehlt → Hinweis AC-19; heute `error` → AC-23
   - negativer und null Sofort-Durchschnitt (EC-3); Ersparnis rundet auf 0,0 (EC-4); Prozent-Rundung
-  - Preislücke (`null`) im Fenster, im Sofort-Fenster und am Ende des Zeitraums
+  - Preislücke (`null`) im Fenster, im Sofort-Fenster, am Ende des Zeitraums und in jedem möglichen Fenster (EC-14 → `price_gaps`, nicht `not_enough_prices`)
   - „jetzt“ mitten im Slot; Gerät in fremder Zeitzone (Testlauf mit anderer `TZ`) (AC-20)
 - **Datenbank-Regeln** als Integrationstest gegen das echte Supabase-Projekt, nach dem Muster von `src/lib/supabase/rls.integration.test.ts`: fremde Geräte weder lesen noch ändern noch löschen; `anon` ohne Zugriff; ungültige Laufzeit und Namen direkt über die Datenschnittstelle abgelehnt (AC-7); 21. Gerät abgelehnt; zwei gleichzeitige Einfügungen bei 19 Geräten → genau eins (EC-9); zwei gleichzeitige gleiche Namen → genau eins (EC-8); `user_id` und `created_at` nicht setzbar; Konto löschen → Geräte weg (AC-27).
 - **Server Actions** mit ersetztem Supabase-Client: Abbildung jedes Fehlercodes auf das Ergebnis, `unauthorized` ohne Datenbankzugriff, `not_found` legt nichts an.
@@ -247,7 +249,7 @@ Keine. Die Tabelle, ihre Rechte und der Trigger kommen per Migration. Es gibt ke
 | Fenster werden in Slots gezählt, nicht in Uhrzeiten | Die echte Laufzeit gilt automatisch auch über die Zeitumstellung (EC-1, EC-2), ohne Sonderfall im Code. | Uhrzeit + Laufzeit in Ortszeit rechnen | Keiner – die Slots aus PROJ-2 sind bereits lückenlose UTC-Zeitpunkte. | 2026-10-06 |
 | Gleichstand über ganzzahlige Summen (Hundertstel EUR/MWh) | Gleitkomma-Summen können bei gleichen Durchschnitten minimal abweichen und so das „früheste Fenster“ (AC-14) zufällig verfehlen. | Durchschnitte als Gleitkommazahlen vergleichen | Werte mit mehr als zwei Nachkommastellen würden für den Vergleich gerundet; Energy-Charts liefert höchstens zwei. | 2026-10-06 |
 | Ersparnis und Prozent aus den angezeigten, gerundeten Durchschnitten | Die Zahlen auf der Karte gehen für Laien auf (11,7 − 8,4 = 3,3), wie im Beispiel von AC-16. | Ersparnis aus ungerundeten Werten | „kaum Unterschied“ (EC-4) erscheint genau dann, wenn beide angezeigten Durchschnitte gleich sind; eine echte Differenz unter 0,05 ct/kWh kann als „0,1“ erscheinen, wenn sie über eine Rundungsgrenze fällt. | 2026-10-06 |
-| Fenster mit Preislücken (`null`) sind nicht zulässig | Die App rechnet nur mit echten Preisen (Produktentscheidung „keine Empfehlung auf Teildaten“). Ohne zulässiges Fenster erscheint der Hinweis aus AC-18; ist nur das Sofort-Fenster betroffen, entfällt die Vergleichszeile. | Lücken überspringen oder mit Nachbarwerten füllen | Bei einer seltenen Lücke in den Quelldaten kann eine Empfehlung fehlen, obwohl die Laufzeit in den Zeitraum passen würde. Die Spec nennt diesen Fall nicht ausdrücklich (siehe Open Questions). | 2026-10-06 |
+| Fenster mit Preislücken (`null`) sind nicht zulässig, eigener Zustand `price_gaps` | Umsetzung von EC-14 (per `/refine` ergänzt): Die App rechnet nur mit echten Preisen. Ist nur das Sofort-Fenster betroffen, entfällt die Vergleichszeile; ist kein Fenster zulässig, erscheint der Hinweis aus EC-14 statt AC-18. | Lücken überspringen oder mit Nachbarwerten füllen | Bei einer seltenen Lücke in den Quelldaten kann eine Empfehlung fehlen, obwohl die Laufzeit in den Zeitraum passen würde. | 2026-10-06 |
 | Server Actions für Anlegen, Ändern, Löschen; Ergebnis enthält die aktuelle Liste | POST, Zod an der Grenze, gleiche Muster wie PROJ-1. Die mitgelieferte Liste macht die Oberfläche ohne zweite Anfrage aktuell und repariert nach EC-9/EC-10 den Stand. | Route Handler (REST); oder Rückgabe nur der einen Zeile und `router.refresh()` | Bis zu 20 Zeilen pro Antwort, vernachlässigbar. Andere offene Tabs aktualisieren sich erst bei der nächsten eigenen Aktion oder beim Neuladen (nicht gefordert). | 2026-10-06 |
 | Datenbank erzwingt alle Regeln zusätzlich (Prüfregeln, eindeutiger Index, Trigger, RLS, Spaltenrechte) | Der Anon-Key ist öffentlich: Wer angemeldet ist, kann die Datenschnittstelle mit seinem Login direkt aufrufen. AC-2, AC-7 und AC-9 verlangen die Ablehnung auch dort. Sicherheitsregel: zweite, unabhängige Sperre. | Prüfung nur in den Server Actions; oder Tabelle für `authenticated` sperren und nur über Service-Rolle schreiben | Regeln stehen an zwei Stellen (Zod und Datenbank) und müssen gleich bleiben – Integrationstests prüfen beide Seiten. | 2026-10-06 |
 | Höchstzahl per Trigger mit Sperre pro Nutzer | Garantie für EC-9: Zwei gleichzeitige Einfügungen bei 19 Geräten zählen nacheinander, es entstehen nie 21. Ein einfaches „erst zählen, dann einfügen“ in der App hätte genau diese Lücke. | Zählen in der Server Action; Zähler-Spalte im Profil | Eine Sperre pro Nutzer serialisiert nur dessen eigene Einfügungen – bei einem Nutzer mit zwei Tabs ohne spürbare Wartezeit. | 2026-10-06 |
@@ -262,4 +264,4 @@ Keine. Die Tabelle, ihre Rechte und der Trigger kommen per Migration. Es gibt ke
 
 ## Open Questions
 
-- [ ] Preislücken (Slots ohne Preis in den Quelldaten, PROJ-2 EC-4) sind in der Spec von PROJ-3 nicht als Edge Case beschrieben. Das Design schließt Fenster mit Lücke aus (siehe Technical Decisions). Soll dieses Verhalten per `/refine PROJ-3` als EC in die Spec, damit `/qa` es prüfen kann?
+- [x] Preislücken (Slots ohne Preis in den Quelldaten, PROJ-2 EC-4) waren in der Spec nicht beschrieben. → Per `/refine PROJ-3` als EC-14 ergänzt, mit eigenem Hinweistext; das Design setzt es als Zustand `price_gaps` um (2026-10-06)

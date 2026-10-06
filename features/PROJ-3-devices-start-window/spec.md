@@ -95,6 +95,7 @@
 - **EC-11** — Angenommen der Nutzer bearbeitet dasselbe Gerät in zwei Tabs, wenn beide speichern, dann gilt die zuletzt gespeicherte Fassung, und die Liste zeigt nach dem Speichern diesen Stand.
 - **EC-12** — Angenommen ein Gerätename enthält Sonderzeichen, Emojis oder HTML (z. B. `<b>Trockner</b>`), wenn er angezeigt wird, dann erscheint er wörtlich als Text und wird nicht als HTML ausgeführt.
 - **EC-13** — Angenommen ein Gerätename ist 40 Zeichen lang, wenn die Karte auf einem 360 px breiten Bildschirm angezeigt wird, dann bricht er um oder wird gekürzt, ohne das Layout zu sprengen, und der volle Name bleibt im Bearbeiten-Dialog lesbar.
+- **EC-14** — Angenommen in den Daten der Quelle fehlen einzelne Slot-Preise (PROJ-2 EC-4), wenn die Empfehlung berechnet wird, dann kommen nur Fenster in Frage, in denen jeder Slot einen Preis hat. Fehlt im Fenster ab dem aktuellen Slot ein Preis, entfällt die Vergleichszeile (AC-16), und „Jetzt starten“ (AC-17) ist nicht möglich. Passt die Laufzeit in den bekannten Zeitraum, enthält aber jedes mögliche Fenster einen Slot ohne Preis, zeigt die Karte statt einer Empfehlung den Hinweis „Für [Laufzeit] h fehlen gerade einzelne Preise in den Daten – eine Empfehlung ist nicht möglich.“
 
 ## Technische Anforderungen
 - **Sicherheit:** Nur angemeldete Nutzer, jeder nur mit seinen eigenen Geräten (AC-2). Zugriff wird zusätzlich in der Datenbank erzwungen (Row Level Security), nicht nur in der App. Alle Eingaben werden serverseitig geprüft (AC-6 bis AC-9), nicht nur im Formular.
@@ -126,3 +127,4 @@
 | Bei Gleichstand gilt das früheste Fenster | Eindeutig und testbar, gleiche Regel wie in PROJ-2 (AC-9). | 2026-10-06 |
 | Reihenfolge der Geräte: wie angelegt, ältestes zuerst | Stabil – Karten springen nicht, wenn sich Empfehlungen ändern oder ein Name bearbeitet wird. | 2026-10-06 |
 | Gleichzeitiges Bearbeiten: die zuletzt gespeicherte Fassung gilt | Ein Nutzer bearbeitet nur seine eigenen Geräte; Konflikte zwischen zwei eigenen Tabs sind selten und ohne Schaden. | 2026-10-06 |
+| Preislücken: nur Fenster ohne fehlenden Slot-Preis, eigener Hinweis, wenn deshalb keins übrig bleibt (EC-14) | Die App rechnet nur mit echten Preisen. Der Hinweis aus AC-18 („Preise für morgen erscheinen ab ca. 13 Uhr“) wäre irreführend, wenn morgen schon da ist und nur Lücken die Empfehlung verhindern. Beim `/architecture` aufgefallen. | 2026-10-06 |
