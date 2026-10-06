@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PasswordChangedToast } from "@/components/account-dialogs";
+import { PriceSection } from "@/components/prices/price-section";
 
 export const metadata: Metadata = { title: "Übersicht – WattWann" };
 
@@ -9,7 +10,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Übersicht</h1>
-      <p className="text-muted-foreground">Hier siehst du bald die Strompreise für heute und morgen und deine Geräte.</p>
+      <PriceSection />
+      <p className="text-muted-foreground">Hier siehst du bald deine Geräte.</p>
       <Suspense fallback={null}>
         <PasswordChangedToast />
       </Suspense>

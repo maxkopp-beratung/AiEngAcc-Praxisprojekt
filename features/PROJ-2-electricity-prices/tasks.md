@@ -33,7 +33,7 @@
 
 ## Ebene 5 — Zusammenbau
 
-- [ ] T13  `PricePanel` (Browser): Titel „Strompreise“, Tabs „Heute“ (vorausgewählt) | „Morgen“, DayView je Modus aus T8–T10, Leer-/Fehlerzustand und Fußzeile aus T11, Live-Daten aus T12, gewählter Tab bleibt beim Aktualisieren erhalten. `PriceSection` (Server): ruft den Preis-Dienst direkt auf, eigene Suspense-Grenze mit Skeleton. Einbau in `/dashboard` unter dem Seitentitel, Platzhaltersatz → „Hier siehst du bald deine Geräte.“  · files: src/components/prices/price-panel.tsx, src/components/prices/price-section.tsx, src/app/dashboard/page.tsx  · → AC-1, AC-22, AC-23, EC-10
+- [x] T13  `PricePanel` (Browser): Titel „Strompreise“, Tabs „Heute“ (vorausgewählt) | „Morgen“, DayView je Modus aus T8–T10, Leer-/Fehlerzustand und Fußzeile aus T11, Live-Daten aus T12, gewählter Tab bleibt beim Aktualisieren erhalten. `PriceSection` (Server): ruft den Preis-Dienst direkt auf, eigene Suspense-Grenze mit Skeleton. Einbau in `/dashboard` unter dem Seitentitel, Platzhaltersatz → „Hier siehst du bald deine Geräte.“  · files: src/components/prices/price-panel.tsx, src/components/prices/price-section.tsx, src/app/dashboard/page.tsx  · → AC-1, AC-22, AC-23, EC-10
 
 ## Ebene 6 — Abschluss
 
