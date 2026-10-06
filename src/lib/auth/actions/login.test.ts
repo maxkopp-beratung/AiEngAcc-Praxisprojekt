@@ -7,14 +7,14 @@ vi.mock('next/navigation', () => ({
 
 const signInWithPassword = vi.fn()
 const signOut = vi.fn()
-const getLoginThrottle = vi.fn()
-const recordLoginFailure = vi.fn()
+const beginLoginAttempt = vi.fn()
+const releaseLoginAttempt = vi.fn()
 const setPendingEmail = vi.fn()
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { signInWithPassword, signOut } }) }))
 vi.mock('@/lib/auth/request-meta', () => ({ getClientIp: async () => '203.0.113.7' }))
 vi.mock('@/lib/auth/throttle', () => ({
-  getLoginThrottle: (...a: unknown[]) => getLoginThrottle(...a),
-  recordLoginFailure: (...a: unknown[]) => recordLoginFailure(...a),
+  beginLoginAttempt: (...a: unknown[]) => beginLoginAttempt(...a),
+  releaseLoginAttempt: (...a: unknown[]) => releaseLoginAttempt(...a),
 }))
 vi.mock('@/lib/auth/pending-email', () => ({ setPendingEmail: (e: string) => setPendingEmail(e) }))
 
@@ -33,8 +33,8 @@ const invalid = { error: { status: 400, code: 'invalid_credentials', name: 'Auth
 beforeEach(() => {
   signInWithPassword.mockReset().mockResolvedValue({ data: {}, error: null })
   signOut.mockReset().mockResolvedValue({ error: null })
-  getLoginThrottle.mockReset().mockResolvedValue({ blocked: false })
-  recordLoginFailure.mockReset().mockResolvedValue(undefined)
+  beginLoginAttempt.mockReset().mockResolvedValue({ blocked: false, attemptId: 7 })
+  releaseLoginAttempt.mockReset().mockResolvedValue(undefined)
   setPendingEmail.mockReset()
 })
 
@@ -42,7 +42,7 @@ describe('login', () => {
   it('signs in with the normalized email and goes to the dashboard (AC-8, EC-7)', async () => {
     await expect(login(initialActionState, form(creds))).rejects.toThrow('REDIRECT:/dashboard')
     expect(signInWithPassword).toHaveBeenCalledWith({ email: 'max@example.de', password: 'geheim123' })
-    expect(recordLoginFailure).not.toHaveBeenCalled()
+    expect(releaseLoginAttempt).toHaveBeenCalledWith(7) // a success is no failure
   })
 
   it('returns to an internal "next" path, never to a foreign one (AC-13, EC-12)', async () => {
@@ -54,28 +54,29 @@ describe('login', () => {
     )
   })
 
-  it('gives the same message for wrong password and unknown address, and records the failure (AC-9, AC-10)', async () => {
+  it('gives the same message for wrong password and unknown address, and keeps the failure (AC-9, AC-10)', async () => {
     signInWithPassword.mockResolvedValue(invalid)
     const state = await login(initialActionState, form(creds))
     expect(state).toMatchObject({ status: 'error', code: 'invalid', message: MESSAGES.invalidCredentials })
-    expect(recordLoginFailure).toHaveBeenCalledWith('max@example.de', '203.0.113.7')
+    expect(beginLoginAttempt).toHaveBeenCalledWith('max@example.de', '203.0.113.7')
+    expect(releaseLoginAttempt).not.toHaveBeenCalled()
   })
 
   it('rejects a locked address without checking the password and names the wait (AC-10, AC-11)', async () => {
-    getLoginThrottle.mockResolvedValue({ blocked: true, retryAfterMinutes: 12 })
+    beginLoginAttempt.mockResolvedValue({ blocked: true, retryAfterMinutes: 12 })
     const state = await login(initialActionState, form(creds))
     expect(state).toMatchObject({ code: 'locked', message: 'Zu viele Fehlversuche. Bitte versuche es in 12 Minuten erneut.' })
     expect(signInWithPassword).not.toHaveBeenCalled()
-    expect(recordLoginFailure).not.toHaveBeenCalled()
+    expect(releaseLoginAttempt).not.toHaveBeenCalled()
   })
 
   it('uses the singular for one minute', async () => {
-    getLoginThrottle.mockResolvedValue({ blocked: true, retryAfterMinutes: 1 })
+    beginLoginAttempt.mockResolvedValue({ blocked: true, retryAfterMinutes: 1 })
     expect((await login(initialActionState, form(creds))).message).toContain('in 1 Minute erneut')
   })
 
   it('fails closed when the throttle cannot be checked', async () => {
-    getLoginThrottle.mockRejectedValue(new Error('db down'))
+    beginLoginAttempt.mockRejectedValue(new Error('db down'))
     expect(await login(initialActionState, form(creds))).toMatchObject({ code: 'connection' })
     expect(signInWithPassword).not.toHaveBeenCalled()
   })
@@ -85,7 +86,7 @@ describe('login', () => {
     const state = await login(initialActionState, form(creds))
     expect(state).toMatchObject({ code: 'unconfirmed', message: MESSAGES.unconfirmed })
     expect(setPendingEmail).toHaveBeenCalledWith('max@example.de')
-    expect(recordLoginFailure).not.toHaveBeenCalled()
+    expect(releaseLoginAttempt).toHaveBeenCalledWith(7)
   })
 
   it('reports connection problems and keeps the email, not the password (EC-5)', async () => {
@@ -93,12 +94,13 @@ describe('login', () => {
     const state = await login(initialActionState, form(creds))
     expect(state).toMatchObject({ code: 'connection', values: { email: creds.email } })
     expect(JSON.stringify(state)).not.toContain('geheim')
+    expect(releaseLoginAttempt).toHaveBeenCalledWith(7) // no answer is no wrong password
   })
 
   it('validates input before anything else', async () => {
     const state = await login(initialActionState, form({ email: '', password: '' }))
     expect(Object.keys(state.fieldErrors ?? {}).sort()).toEqual(['email', 'password'])
-    expect(getLoginThrottle).not.toHaveBeenCalled()
+    expect(beginLoginAttempt).not.toHaveBeenCalled()
   })
 })
 

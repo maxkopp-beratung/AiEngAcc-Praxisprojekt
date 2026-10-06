@@ -99,7 +99,8 @@ describe.skipIf(!configured)('database access rules (real Supabase project)', { 
     const hashes = { p_email_hash: 'e'.repeat(64), p_ip_hash: 'i'.repeat(64) }
     for (const client of [anon, a.client]) {
       expect((await client.rpc('login_throttle_status', hashes)).error?.code).toBe('42501')
-      expect((await client.rpc('record_login_failure', hashes)).error?.code).toBe('42501')
+      expect((await client.rpc('begin_login_attempt', hashes)).error?.code).toBe('42501')
+      expect((await client.rpc('release_login_attempt', { p_attempt_id: 1 })).error?.code).toBe('42501')
       expect((await client.rpc('auth_email_exists', { p_email: b.email })).error?.code).toBe('42501')
     }
   })
@@ -113,7 +114,7 @@ describe.skipIf(!configured)('database access rules (real Supabase project)', { 
     const hex = () => randomBytes(32).toString('hex')
     const status = async (email: string, ip: string) =>
       (await admin.rpc('login_throttle_status', { p_email_hash: email, p_ip_hash: ip })).data[0]
-    const fail = (email: string, ip: string) => admin.rpc('record_login_failure', { p_email_hash: email, p_ip_hash: ip })
+    const fail = (email: string, ip: string) => admin.rpc('begin_login_attempt', { p_email_hash: email, p_ip_hash: ip })
 
     const email = hex()
     for (let i = 0; i < 4; i++) await fail(email, hex())
@@ -129,6 +130,30 @@ describe.skipIf(!configured)('database access rules (real Supabase project)', { 
     expect((await status(hex(), ip)).blocked).toBe(false)
     await fail(hex(), ip)
     expect((await status(hex(), ip)).blocked).toBe(true)
+  })
+
+  it('does not count an attempt that was released (AC-6, AC-8)', async () => {
+    const hex = () => randomBytes(32).toString('hex')
+    const email = hex()
+    for (let i = 0; i < 5; i++) {
+      const { data } = await admin.rpc('begin_login_attempt', { p_email_hash: email, p_ip_hash: hex() })
+      await admin.rpc('release_login_attempt', { p_attempt_id: data[0].attempt_id })
+    }
+    const { data } = await admin.rpc('login_throttle_status', { p_email_hash: email, p_ip_hash: hex() })
+    expect(data[0].blocked).toBe(false)
+  })
+
+  it('lets at most 5 of 12 parallel attempts for one address through (AC-10, BUG-1)', async () => {
+    const hex = () => randomBytes(32).toString('hex')
+    const email = hex()
+    const ip = hex()
+    // One login attempt with a wrong password, as the action runs it: reserve, keep as failure.
+    const attempt = async () => {
+      const { data } = await admin.rpc('begin_login_attempt', { p_email_hash: email, p_ip_hash: ip })
+      return !data[0].blocked
+    }
+    const passed = (await Promise.all(Array.from({ length: 12 }, attempt))).filter(Boolean)
+    expect(passed).toHaveLength(5)
   })
 
   it('deletes the profile together with the account (AC-25, EC-11)', async () => {

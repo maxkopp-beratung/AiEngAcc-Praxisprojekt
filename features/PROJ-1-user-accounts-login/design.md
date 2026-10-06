@@ -303,3 +303,15 @@ Abweichungen und Ergänzungen gegenüber dem Design oben, damit `/qa` und späte
 - **Neuversand und Mail-Limit:** Meldet Supabase beim Neuversand „zu häufig“, erscheint „Bitte warte noch kurz“. Beim Passwort-Reset bleibt die Antwort auch dann neutral, weil eine abweichende Antwort dort verraten würde, dass die Adresse ein Konto hat.
 - **Integrationstest gegen das echte Projekt:** `src/lib/supabase/rls.integration.test.ts` liest `.env.local` selbst ein (Next.js lädt sie im Testmodus nicht). Er legt zwei Wegwerf-Konten an und löscht sie wieder. Ohne Schlüssel wird er übersprungen.
 - **Beobachtung für `/qa`:** Im ersten Browser-Durchlauf meldete der allererste Login-Versuch „Verbindungsproblem“. Danach und nach einem Kaltstart des Servers ließ sich das nicht reproduzieren. Vermutlich war es eine einmalige Netzwerkstörung zu Supabase. Die App reagiert darauf wie vorgesehen: Sie blockiert und zeigt eine verständliche Meldung.
+
+## Umsetzungsnotizen (`/build`, Fix BUG-1, 2026-10-06)
+
+- **Login-Sperre atomar (BUG-1 aus `qa-report.md`):** Sperrprüfung und Eintrag des Fehlversuchs waren zwei getrennte Aufrufe. Parallele Anfragen kamen deshalb alle durch die Prüfung (12 von 12 statt 5). Ersetzt durch zwei Datenbankfunktionen in der Migration `20261006000004_login_throttle_atomic.sql`, aufrufbar nur von der Service-Rolle:
+  - **„Versuch beginnen“** (`begin_login_attempt`): Prüft die Sperre und trägt den Versuch sofort als Fehlversuch ein, in einem Schritt unter einer Datenbank-Sperre (Advisory Lock). Die Funktion gibt „gesperrt / frei in N Sekunden“ oder die ID des Eintrags zurück.
+  - **„Versuch freigeben“** (`release_login_attempt`): Löscht diesen Eintrag wieder. Die Login-Action ruft das bei jedem Ausgang außer „falsches Passwort“ auf: bei Erfolg, unbestätigtem Konto, Supabase-Limit und Verbindungsfehler.
+  - `record_login_failure` ist entfernt. `login_throttle_status` bleibt, als Baustein und für Tests.
+- **An der Regel ändert sich nichts:** Weiterhin zählen nur Fehlversuche, und ein gesperrter Versuch verlängert die Sperre nicht. Neu ist nur der Zeitpunkt, zu dem gezählt wird: vor der Passwortprüfung statt danach.
+- **Nebenwirkung:** Bricht der Server zwischen Reservierung und Freigabe ab, bleibt der Eintrag 15 Minuten lang als Fehlversuch stehen. Das verschärft die Sperre höchstens, es lockert sie nie.
+- **Nachweis:** `src/lib/supabase/rls.integration.test.ts`, gegen das echte Projekt.
+  - Von 12 parallelen Versuchen kommen genau 5 durch. Mit dem alten Ablauf war der Test rot (12 von 12).
+  - Freigegebene Versuche zählen nicht.

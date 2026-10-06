@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getClientIp } from '@/lib/auth/request-meta'
-import { getLoginThrottle, recordLoginFailure } from '@/lib/auth/throttle'
+import { beginLoginAttempt, releaseLoginAttempt } from '@/lib/auth/throttle'
 import { setPendingEmail } from '@/lib/auth/pending-email'
 import { safeRedirectPath } from '@/lib/auth/safe-redirect'
 import { formDataToObject, loginSchema, toFieldErrors } from '@/lib/auth/schemas'
@@ -27,15 +27,25 @@ export async function login(_prev: ActionState, formData: FormData): Promise<Act
   const connectionError: ActionState = { status: 'error', code: 'connection', message: MESSAGES.connection, values }
 
   // 1. Throttle first: a locked address is not even checked (and unknown addresses lock the same way).
-  let ip: string
+  //    A free attempt is reserved as a failure right away, so parallel attempts count (BUG-1).
+  let attemptId: number
   try {
-    ip = await getClientIp()
-    const throttle = await getLoginThrottle(email, ip)
-    if (throttle.blocked) {
-      return { status: 'error', code: 'locked', message: lockedMessage(throttle.retryAfterMinutes), values }
+    const attempt = await beginLoginAttempt(email, await getClientIp())
+    if (attempt.blocked) {
+      return { status: 'error', code: 'locked', message: lockedMessage(attempt.retryAfterMinutes), values }
     }
+    attemptId = attempt.attemptId
   } catch {
     return connectionError // fail closed
+  }
+
+  // Only a wrong password counts; every other outcome gives the reservation back.
+  const release = async () => {
+    try {
+      await releaseLoginAttempt(attemptId)
+    } catch {
+      // The reservation then stays a failure for 15 minutes, which only ever tightens the lock.
+    }
   }
 
   // 2. The credential check itself.
@@ -44,18 +54,15 @@ export async function login(_prev: ActionState, formData: FormData): Promise<Act
     const supabase = await createClient()
     ;({ error } = await supabase.auth.signInWithPassword({ email, password }))
   } catch {
+    await release()
     return connectionError
   }
 
+  if (error?.code === 'invalid_credentials') {
+    return { status: 'error', code: 'invalid', message: MESSAGES.invalidCredentials, values }
+  }
+  await release()
   if (error) {
-    if (error.code === 'invalid_credentials') {
-      try {
-        await recordLoginFailure(email, ip)
-      } catch {
-        // The answer stays the same; the failure is lost, which only ever loosens the lock.
-      }
-      return { status: 'error', code: 'invalid', message: MESSAGES.invalidCredentials, values }
-    }
     if (error.code === 'email_not_confirmed') {
       // Only reported for a correct password, so it is not counted as a failure (AC-6).
       await setPendingEmail(email)
