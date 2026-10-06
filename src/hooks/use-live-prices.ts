@@ -4,6 +4,8 @@
 // a clock that ticks at every 15-minute slot boundary (AC-19), a catch-up on return to the
 // foreground (EC-7), conditional refetching of /api/prices (AC-20), the day change at midnight
 // (AC-21), silent failure handling (EC-8) and the "Erneut versuchen" request (AC-23).
+// PROJ-3 runs it once per page in LivePricesProvider: it starts without a payload and adopts the
+// server-rendered one from the "Strompreise" section via `handover` (PROJ-3 design.md → LivePricesProvider).
 import * as React from "react"
 
 import { berlinToday, nextBerlinDate } from "@/lib/prices/berlin-time"
@@ -45,13 +47,26 @@ async function fetchPrices(signal: AbortSignal): Promise<FetchResult> {
   }
 }
 
-export function useLivePrices(initial: PricesPayload): {
-  payload: PricesPayload
+export type LivePrices<P extends PricesPayload | null = PricesPayload | null> = {
+  /** The current price payload; null until the first payload was handed over. */
+  payload: P
+  /** "Now", recomputed at every slot boundary and on return to the foreground. */
   now: Date
+  /** "Erneut versuchen" (AC-23): always asks the server. */
   retry: () => Promise<void>
   retrying: boolean
-} {
-  const [payload, setPayloadState] = React.useState<PricesPayload>(initial)
+  /** Adopts a payload while the hook has none yet. Only the first one counts, later calls are ignored. */
+  handover: (payload: PricesPayload) => void
+}
+
+/**
+ * Started with a payload, the hook keeps it current. Started with `null`, the clock ticks but nothing is
+ * refetched (there is nothing to check) until `handover` delivers the first payload.
+ */
+export function useLivePrices(initial: PricesPayload): LivePrices<PricesPayload>
+export function useLivePrices(initial: PricesPayload | null): LivePrices
+export function useLivePrices(initial: PricesPayload | null): LivePrices {
+  const [payload, setPayloadState] = React.useState<PricesPayload | null>(initial)
   const [now, setNow] = React.useState<Date>(() => new Date())
   const [retrying, setRetrying] = React.useState(false)
 
@@ -86,7 +101,7 @@ export function useLivePrices(initial: PricesPayload): {
       const current = payloadRef.current
 
       if (result.kind === "ok") {
-        const stillValid = current.today.date === today && current.today.status === "ok"
+        const stillValid = current !== null && current.today.date === today && current.today.status === "ok"
         // EC-8: an error for today in the response never replaces data that still fits today.
         if (result.payload.today.status === "error" && stillValid) return
         setPayload(result.payload)
@@ -95,7 +110,8 @@ export function useLivePrices(initial: PricesPayload): {
 
       // Network error or non-2xx (EC-8): keep the shown data while it belongs to today,
       // otherwise show the error state; the next attempt comes at the next slot boundary.
-      if (current.today.date !== today) setPayload(errorPayload(today))
+      // Without a payload yet, nothing is shown that could be replaced: stay empty for the handover.
+      if (current !== null && current.today.date !== today) setPayload(errorPayload(today))
     }
 
     const promise = run().finally(() => {
@@ -111,6 +127,8 @@ export function useLivePrices(initial: PricesPayload): {
     (at: Date) => {
       const today = berlinToday(at)
       const current = payloadRef.current
+      // No payload handed over yet: nothing to check, the clock alone moves on.
+      if (current === null) return
 
       if (current.today.date !== today) {
         // Day change: promote tomorrow locally right away, then let the server replace it.
@@ -175,5 +193,14 @@ export function useLivePrices(initial: PricesPayload): {
     }
   }, [request])
 
-  return { payload, now, retry, retrying }
+  // First payload wins (idempotent under StrictMode's double effects); after that the hook owns the state.
+  const handover = React.useCallback(
+    (next: PricesPayload) => {
+      if (payloadRef.current !== null) return
+      setPayload(next)
+    },
+    [setPayload],
+  )
+
+  return { payload, now, retry, retrying, handover }
 }

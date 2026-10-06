@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyFigures } from "@/components/prices/key-figures";
 import { PriceChart } from "@/components/prices/price-chart";
 import { PriceFooter } from "@/components/prices/price-footer";
 import { PricesErrorState, TomorrowEmptyState } from "@/components/prices/price-states";
 import { PriceTable } from "@/components/prices/price-table";
+import { useLivePricesContext } from "@/components/prices/live-prices-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLivePrices } from "@/hooks/use-live-prices";
 import type { PricesPayload, Slot } from "@/lib/prices/types";
 
 type Mode = "today" | "day";
@@ -22,10 +22,14 @@ function DayView({ slots, mode, now }: { slots: Slot[]; mode: Mode; now: Date })
   );
 }
 
-// The "Strompreise" section on the dashboard (PROJ-2). Starts with the server-rendered payload and keeps
-// itself current in the browser (useLivePrices). Both days are in the payload, so switching tabs never loads (EC-10).
+// The "Strompreise" section on the dashboard (PROJ-2). Hands its server-rendered payload to the page's
+// LivePricesProvider (PROJ-3), which keeps it current in the browser; until that lands it shows `initial`
+// directly, so nothing flickers. Both days are in the payload, so switching tabs never loads (EC-10).
 export function PricePanel({ initial }: { initial: PricesPayload }) {
-  const { payload, now, retry, retrying } = useLivePrices(initial);
+  const { payload: shared, now, retry, retrying, handover } = useLivePricesContext();
+  // Only the first handover counts, so later renders or StrictMode's double effect change nothing.
+  useEffect(() => handover(initial), [handover, initial]);
+  const payload = shared ?? initial;
   // Controlled, so the chosen tab survives the automatic updates; not persisted, a reload starts on "Heute" (AC-1).
   const [tab, setTab] = useState("today");
   const { today, tomorrow } = payload;

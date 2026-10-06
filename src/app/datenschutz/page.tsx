@@ -46,6 +46,11 @@ export default function DatenschutzPage() {
               (Art. 6 Abs. 1 lit. b DSGVO).
             </li>
             <li>
+              <strong>Deine Geräte:</strong> Name und Laufzeit jedes Geräts, das du anlegst. Damit empfehlen wir
+              dir das günstigste Startfenster; die Empfehlung selbst wird bei jedem Aufruf neu berechnet und nicht
+              gespeichert. Rechtsgrundlage ist die Erfüllung des Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO).
+            </li>
+            <li>
               <strong>Schutz vor Passwort-Raten:</strong> Bei einer fehlgeschlagenen Anmeldung speichern wir
               unkenntlich gemachte Prüfwerte (Hashes) deiner E-Mail-Adresse und deiner IP-Adresse, um nach zu vielen
               Fehlversuchen kurz zu sperren. Rechtsgrundlage ist unser berechtigtes Interesse an der Sicherheit der
@@ -63,6 +68,7 @@ export default function DatenschutzPage() {
           <h2>Wie lange wir Daten speichern</h2>
           <ul>
             <li>Kontodaten: bis du dein Konto löschst.</li>
+            <li>Geräte: bis du das Gerät oder dein Konto löschst.</li>
             <li>Konten, deren E-Mail-Adresse nie bestätigt wurde: werden nach 7 Tagen automatisch gelöscht.</li>
             <li>Prüfwerte fehlgeschlagener Anmeldungen: höchstens 15 Minuten.</li>
           </ul>
@@ -93,11 +99,12 @@ export default function DatenschutzPage() {
             </li>
             <li>
               <strong>Berichtigung</strong> (Art. 16 DSGVO): Deinen Anzeigenamen änderst du selbst im Menü oben
-              rechts, deine E-Mail-Adresse auf Anfrage per E-Mail.
+              rechts, deine Geräte im Abschnitt „Meine Geräte“, deine E-Mail-Adresse auf Anfrage per E-Mail.
             </li>
             <li>
-              <strong>Löschung</strong> (Art. 17 DSGVO): „Konto löschen“ im Menü entfernt dein Konto und alle
-              zugehörigen Daten sofort.
+              <strong>Löschung</strong> (Art. 17 DSGVO): Einzelne Geräte löschst du selbst im Abschnitt „Meine
+              Geräte“. „Konto löschen“ im Menü entfernt dein Konto und alle zugehörigen Daten, auch deine Geräte,
+              sofort.
             </li>
             <li>
               <strong>Widerspruch</strong> (Art. 21 DSGVO) gegen den Schutz vor Passwort-Raten: per E-Mail.
