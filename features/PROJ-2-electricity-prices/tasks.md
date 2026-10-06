@@ -37,7 +37,7 @@
 
 ## Ebene 6 — Abschluss
 
-- [ ] T14  Prüfung im laufenden System: ein einziger echter Abruf, angezeigte Werte stichprobenartig gegen Energy-Charts (umgerechnet) vergleichen; Browser bei 360 px (kein horizontales Scrollen, Antippen zeigt Wert) und per Tastatur (Tabs, Diagramm mit Pfeiltasten, Tabelle); Korrekturen in den betroffenen Dateien aus T8–T13  · files: — (Prüfung; Korrekturen nur in Dateien aus T8–T13)  · → AC-4, AC-5, AC-17
+- [x] T14  Prüfung im laufenden System: ein einziger echter Abruf, angezeigte Werte stichprobenartig gegen Energy-Charts (umgerechnet) vergleichen; Browser bei 360 px (kein horizontales Scrollen, Antippen zeigt Wert) und per Tastatur (Tabs, Diagramm mit Pfeiltasten, Tabelle); Korrekturen in den betroffenen Dateien aus T8–T13  · files: — (Prüfung; Korrekturen nur in Dateien aus T8–T13)  · → AC-4, AC-5, AC-17
 
 ## Parallelisierung
 

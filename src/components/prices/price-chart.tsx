@@ -282,7 +282,13 @@ export function PriceChart({ slots, mode, now }: { slots: Slot[]; mode: PriceCha
   return (
     <div className="w-full min-w-0">
       <p className="mb-1 text-xs text-muted-foreground">ct/kWh</p>
-      <div className="rounded-md has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background">
+      {/* Pointer/tap must not focus the chart: recharts' keyboard layer jumps the tooltip to the first slot on
+          focus, so a tap would show 00:00 instead of the tapped bar (AC-5, AC-17). Tab still focuses it. */}
+      <div
+        data-testid="price-chart-frame"
+        onMouseDown={(e) => e.preventDefault()}
+        className="rounded-md has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background"
+      >
         <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
           <BarChart
             data={rows}

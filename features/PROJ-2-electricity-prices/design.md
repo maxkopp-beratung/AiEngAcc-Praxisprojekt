@@ -186,6 +186,13 @@ Keine. Die Energy-Charts-API braucht keinen Schlüssel und keine Einstellung in 
 | Antwort von Energy-Charts wird gegen ein Schema geprüft (Zod) | Eingaben von außen werden an der Grenze geprüft (Sicherheitsregel). Eine geänderte API soll den Fehlerzustand auslösen, nicht falsche Preise anzeigen. | Antwort ungeprüft übernehmen | Ändert Energy-Charts das Format, zeigt die App einen Fehler, bis das Schema angepasst ist. | 2026-10-06 |
 | Zeitüberschreitung 8 s für die Anfrage an Energy-Charts | Hält die 10-Sekunden-Grenze der Spec samt Verarbeitung ein. Die API antwortet normalerweise in unter 0,5 s. | 5 s / 10 s | Bei sehr langsamer API greift früher der Fehler bzw. der alte Stand. | 2026-10-06 |
 
+## Umsetzungsnotizen (`/build`)
+
+- **Tippen fokussierte das Diagramm (in T14 gefunden, behoben):** Ein Klick oder Tippen auf einen Balken hat das Diagramm fokussiert. Die Tastatur-Schicht von Recharts springt beim Fokussieren auf den ersten Slot, also zeigte der Tooltip „00:00–00:15“ statt des angetippten Balkens. Jetzt verhindert der Rahmen des Diagramms den Fokus per Maus/Tippen (`mousedown` ohne Standardaktion); per Tab bleibt es fokussierbar. Abgesichert durch einen Test in `price-chart.test.tsx`.
+- **Nach Mitternacht bleibt der Ausfallschutz erhalten:** Der Zwischenspeicher übernimmt beim Tageswechsel das bisherige „morgen“ als abgelaufenen Eintrag für „heute“. Fällt Energy-Charts direkt nach Mitternacht aus, zeigt die App so trotzdem die Preise des Tages (AC-24), statt des Fehlers.
+- **Marker-Beschriftungen im Diagramm:** Ihre Breite wird geschätzt (SVG-Text wird nicht gemessen). Überlappende Labels werden übereinander gestapelt.
+- **Sub-Agenten ohne Worktree-Isolation:** Die parallelen Aufgaben liefen direkt im PROJ-2-Worktree, weil eine Isolation vom PROJ-1-Checkout abgezweigt wäre. Die `[P]`-Aufgaben hatten disjunkte Dateien, Git-Befehle lagen nur beim Hauptagenten.
+
 ## Open Questions
 
 - [x] Nutzungsbedingungen und Abfragegrenzen der Energy-Charts-API (aus `spec.md`): Laut OpenAPI-Beschreibung gilt für `/price` ein Token-Bucket mit 2 Anfragen pro Minute pro IP (Burst 2), bei Last weniger. Bei Überschreitung kommt HTTP 429 mit `Retry-After`. Daten unter CC BY 4.0 mit Pflicht zur Nennung von Energy-Charts.info. → Der Zwischenspeicher oben ist darauf ausgelegt.

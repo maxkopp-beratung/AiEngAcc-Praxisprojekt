@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { berlinDaySlotStarts } from "@/lib/prices/berlin-time";
 import type { Slot } from "@/lib/prices/types";
@@ -213,5 +213,13 @@ describe("PriceChart", () => {
     expect(markers?.textContent).toContain("günstigst");
     expect(markers?.textContent).toContain("teuerst");
     expect(markers?.querySelectorAll("svg")).toHaveLength(2);
+  });
+
+  it("a click or tap does not focus the chart, so the tooltip stays on the tapped bar (AC-5, AC-17)", () => {
+    const slots = daySlots(NORMAL, () => 100);
+    render(<PriceChart slots={slots} mode="day" now={new Date(0)} />);
+    const surface = screen.getByLabelText(CHART_LABEL);
+    // fireEvent returns false when a handler called preventDefault, i.e. the browser will not move focus.
+    expect(fireEvent.mouseDown(surface)).toBe(false);
   });
 });
