@@ -25,8 +25,11 @@
 
 | ID | Feature | Description | Status | Spec | Created |
 |----|---------|-------------|--------|------|---------|
+| PROJ-1 | Benutzerkonto & Login | Registrierung, Login und Logout per E-Mail und Passwort über Supabase; `/dashboard` ist geschützt, jeder Nutzer sieht nur seine eigenen Daten (RLS). | Roadmap | — | 2026-10-06 |
+| PROJ-2 | Strompreise | Zeigt die Day-ahead-Börsenpreise für heute und morgen in ct/kWh mit markiertem günstigstem und teuerstem Zeitpunkt, serverseitig von der Energy-Charts API. | Roadmap | — | 2026-10-06 |
+| PROJ-3 | Geräte & Startfenster | Geräte mit Laufzeit anlegen, bearbeiten und löschen und pro Gerät das günstigste zusammenhängende Startfenster im Vergleich zu „sofort starten“ sehen. | Roadmap | — | 2026-10-06 |
 
-**Build order:** _P0 (MVP): PROJ-1 → PROJ-2 · P1: PROJ-3 (needs PROJ-2) · P2: PROJ-4 (needs PROJ-2) — written by `/init`, kept current by `/refine`_
+**Build order:** P0 (MVP): PROJ-1 → PROJ-2 → PROJ-3 (needs PROJ-1, PROJ-2)
 
 <!-- Add features above this line -->
 
@@ -36,4 +39,4 @@
 
 - _v1.0.0 · 2026-01-31 · https://app.example.com · PROJ-1, PROJ-2_
 
-## Next Available ID: PROJ-1
+## Next Available ID: PROJ-4

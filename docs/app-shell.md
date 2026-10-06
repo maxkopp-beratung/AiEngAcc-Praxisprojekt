@@ -1,64 +1,31 @@
-# App Shell & Navigation
+# App-Rahmen & Navigation
 
-> The app-wide map of **the frame every feature is shown inside** — navigation, layout regions, and the patterns each page repeats.
+> Die app-weite Übersicht über **den Rahmen, in dem jedes Feature angezeigt wird** – Bereiche, Layout und das gemeinsame Seitenmuster.
 >
-> - Created by `/init` (the first holistic pass: top-level areas + layout).
-> - Refined by `/architecture` as each feature is designed.
-> - **Altitude:** structure, not styling. Which areas exist, where they live, who sees them, what every page shares. Colors, fonts, and component styling belong in `docs/design-system.md`; a single page's internals belong in that feature's `design.md`.
->
-> Without this map the shell grows by accretion — every feature adds a nav item and a header variant in its own `design.md`, and nobody owns the whole. Rebuilding it later is then expensive, because no acceptance criterion says what it is supposed to do.
+> - Erstellt von `/init` (erster Gesamtentwurf: Bereiche + Layout).
+> - Verfeinert von `/architecture`, sobald ein Feature entworfen wird.
+> - **Flughöhe:** Struktur, nicht Gestaltung. Farben, Schriften und Komponenten-Stil stehen in `docs/design-system.md`; das Innere einer einzelnen Seite steht in der `design.md` des jeweiligen Features. Das genaue Verhalten (Weiterleitungen, mobiles Verhalten usw.) wird in den Specs als Akzeptanzkriterien festgelegt.
 
-## Owning feature
+## Zuständiges Feature
 
-_The feature whose `spec.md` carries the shell's acceptance criteria (e.g. `PROJ-1 App Shell & Navigation`), or "none — shell is trivial" for a single-screen app. Changes to the shell are refined there, not invented per feature._
+Owner: PROJ-1 (Benutzerkonto & Login) – liefert den geschützten Bereich `/dashboard` mit Kopfzeile und Abmelden. PROJ-2 und PROJ-3 füllen nur Abschnitte darin. Änderungen am Rahmen laufen über `/refine PROJ-1`.
 
-Owner: _PROJ-X — always a feature: the App Shell feature if one exists, otherwise the feature that builds the screen the frame sits on. Changes to the frame go through `/refine` on this feature._
+## Bereiche
 
-## Top-Level Areas
+| Bereich | Was man dort tut | Sichtbar für | Feature |
+|---------|------------------|--------------|---------|
+| `/login` | anmelden | nicht angemeldet | PROJ-1 |
+| `/signup` | registrieren | nicht angemeldet | PROJ-1 |
+| `/dashboard` | Preise ansehen, Geräte verwalten, Empfehlungen sehen | angemeldet | Rahmen: PROJ-1 · Abschnitt „Strompreise“: PROJ-2 · Abschnitt „Meine Geräte“: PROJ-3 |
 
-_The places a user can navigate to. One row per nav entry — not one row per page._
+## Layout
 
-| Area | What the user does there | Visible to | Owning feature |
-|------|--------------------------|------------|----------------|
-| _Dashboard_ | _Overview after login_ | _signed-in users_ | _PROJ-2_ |
-| _..._ | _..._ | _..._ | _..._ |
+Kopfzeile mit App-Name und Abmelden, darunter der Inhalt einspaltig. Keine Seitenleiste.
 
-## Layout Regions
+## Abschnitts-Muster
 
-_The fixed frame. Name each region and what belongs in it._
-
-- **Sidebar:** _the top-level areas, logo at the top, account menu at the bottom_
-- **Header:** _page title, primary action for that page_
-- **Content:** _the feature's own UI_
-- **Mobile:** _how the sidebar behaves below `md` (burger / drawer / bottom bar)_
-
-## Page Pattern
-
-_What every page repeats, so features don't each invent their own. `/build` follows this instead of guessing._
-
-- **Page header:** _title, optional subtitle, primary action on the right_
-- **Loading state:** _skeleton / spinner, and where_
-- **Empty state:** _what an area with no data shows_
-- **Error state:** _how a failed load is presented_
-- **Toasts / feedback:** _where confirmations appear_
-
-## Auth States
-
-_The shell usually differs by who is looking. Say how._
-
-- **Signed out:** _which areas are reachable, what the shell shows_
-- **Signed in:** _..._
-- **Roles (if any):** _which areas each role sees_
-
-## Shell Components
-
-_The shared building blocks and where they live, so nothing gets rebuilt per feature._
-
-| Component | File | Purpose |
-|-----------|------|---------|
-| _AppSidebar_ | _`src/components/app-sidebar.tsx`_ | _top-level navigation_ |
-| _..._ | _..._ | _..._ |
+Titel, Lade-, Leer- und Fehlerzustand sowie Rückmeldungen folgen `docs/design-system.md` → Komponenten-Konventionen.
 
 ---
 
-_This is a living document. When `/architecture` designs a feature that adds a nav entry, a layout region, or a new page pattern, it updates this map first, so later features build against an accurate frame. Behavior changes to the shell go through `/refine` on the owning feature — never straight into a feature's `design.md`._
+_Dies ist ein lebendes Dokument. Wenn `/architecture` ein Feature entwirft, das einen Bereich oder eine Layout-Region hinzufügt, aktualisiert es zuerst diese Übersicht. Verhaltensänderungen am Rahmen laufen über `/refine` auf dem zuständigen Feature – nie direkt in die `design.md` eines anderen Features._

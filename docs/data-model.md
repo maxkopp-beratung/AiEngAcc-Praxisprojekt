@@ -1,38 +1,34 @@
-# Data Model
+# Datenmodell
 
-> The app-wide map of **what data this product stores and how it connects** — the shared blueprint every feature's tables conform to.
+> Die app-weite Übersicht, **welche Daten das Produkt speichert und wie sie zusammenhängen** – der gemeinsame Bauplan, an den sich die Tabellen jedes Features halten.
 >
-> - Created by `/init` (the first holistic pass: entities + relationships).
-> - Refined by `/architecture` as each feature is designed.
-> - **Altitude:** entities, relationships, and ownership live here (product-level, anyone can read them). Column types, indexes, and exact foreign keys are decided per feature in that feature's `design.md` — not here.
+> - Erstellt von `/init` (erster Gesamtentwurf: Entitäten + Beziehungen).
+> - Verfeinert von `/architecture`, sobald ein Feature entworfen wird.
+> - **Flughöhe:** Entitäten, Beziehungen und Eigentum stehen hier (Produktebene, für alle lesbar). Spaltentypen, Indizes und genaue Fremdschlüssel werden pro Feature in dessen `design.md` festgelegt – nicht hier.
 
-## Entities
+## Entitäten
 
-_Each entity is a kind of thing the app stores (a real-world noun). List the ones you know so far with a one-line purpose and who owns or can see it. No column types — just the thing and what it's for._
+| Entität | Was sie darstellt | Gehört wem / wer sieht sie | Feature |
+|---------|-------------------|----------------------------|---------|
+| `profiles` | Das Profil zu einem Konto. Es wird bei der Registrierung automatisch angelegt und mit dem Supabase-Auth-Nutzer verknüpft. | nur der Nutzer selbst (RLS) | PROJ-1 |
+| `devices` | Ein Gerät des Nutzers mit Name und Laufzeit, z. B. „Waschmaschine, 2:30 h“ | nur der Nutzer selbst, der es lesen, anlegen, ändern und löschen kann (RLS) | PROJ-3 |
+| Strompreise *(nicht gespeichert)* | Day-ahead-Preise im 15-Minuten-Raster. Sie werden live von Energy-Charts geholt und nur kurz serverseitig zwischengespeichert. | öffentlich, für alle angemeldeten Nutzer gleich | PROJ-2 |
+| Startfenster-Empfehlung *(nicht gespeichert)* | Wird bei jedem Aufruf aus Preisen und Gerätelaufzeit neu berechnet | nur für den Nutzer, dem das Gerät gehört | PROJ-3 |
 
-| Entity | What it represents | Owned by / who can see it |
-|--------|--------------------|---------------------------|
-| _profiles_ | _A user's account profile_ | _the user themselves_ |
-| _..._ | _..._ | _..._ |
+## Beziehungen
 
-## Relationships
+- Jeder Auth-Nutzer hat genau ein Profil.
+- Ein Profil hat beliebig viele Geräte, jedes Gerät gehört genau einem Profil. Wird das Konto gelöscht, verschwinden auch seine Geräte.
+- Strompreise hängen an keinem Nutzer. Sie werden erst bei der Berechnung einer Empfehlung mit der Laufzeit eines Geräts kombiniert.
 
-_How the entities connect, in plain language. This is where coherence comes from — get the connections right once, up front._
-
-- _A profile has many ..._
-- _Each ... belongs to exactly one ..._
-- _A ... can have many ..._
-
-## Diagram (optional)
-
-_A simple text sketch of the model, filled in as it firms up._
+## Diagramm
 
 ```
-profiles
-  └─ owns many ...
-        └─ has many ...
+auth user ── 1:1 ── profiles
+                      └─ besitzt viele ─ devices
+                                           └─ + Strompreise (live) → Empfehlung (berechnet)
 ```
 
 ---
 
-_This is a living document. When `/architecture` designs a feature that introduces or changes an entity, it updates this map first, so later features build against an accurate picture. Run `/init` to create the first version from your feature map._
+_Dies ist ein lebendes Dokument. Wenn `/architecture` ein Feature entwirft, das eine Entität einführt oder ändert, aktualisiert es zuerst diese Übersicht, damit spätere Features gegen ein korrektes Bild bauen._
