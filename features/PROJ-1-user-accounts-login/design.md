@@ -171,7 +171,7 @@ Supabase speichert E-Mail-Adresse, Passwort-Hash, Bestätigungs- und Login-Zeitp
 - Ungültig, abgelaufen oder schon benutzt:
   - Ist der Nutzer bereits angemeldet: weiter zu `/dashboard`.
   - Sonst: weiter zu `/auth/link-invalid?typ=signup` bzw. `?typ=reset`.
-- **Hinweis zu EC-2:** Supabase unterscheidet „schon benutzt“ nicht von „abgelaufen“. Die Seite deckt deshalb beides ab: „Dieser Link ist ungültig oder abgelaufen. Hast du deine Adresse schon bestätigt? Dann melde dich einfach an.“ mit Button „Anmelden“ und dem Formular für einen neuen Link. Das weicht vom Wortlaut von EC-2 ab, siehe Offene Fragen.
+- **Hinweis zu EC-2:** Supabase unterscheidet „schon benutzt“ nicht von „abgelaufen“. Die Seite deckt deshalb beides ab: „Dieser Link ist ungültig oder abgelaufen. Hast du deine Adresse schon bestätigt? Dann melde dich einfach an.“ mit Button „Anmelden“ und dem Formular für einen neuen Link. So steht es jetzt auch in EC-2.
 
 **Neues Passwort setzen** (AC-20)
 - Nur mit Reset-Sitzung erreichbar. Ohne Sitzung geht es weiter zu `/auth/link-invalid?typ=reset`.
@@ -284,7 +284,7 @@ Alle Einstellungen sind `now`: Es gibt kein Deployment, das Supabase-Projekt (�
 | Auth-Einstellungen im Dashboard statt per `supabase config push` | `config push` überschreibt **alle** Auth-Einstellungen des einzigen (Live-)Projekts mit der lokalen Datei, und die Geheimnisse müssten in eine weitere lokale Datei | `config push` (Einstellungen als Code) | Einstellungen sind nicht versioniert. Die Tabelle oben ist ihre Dokumentation | 2026-10-06 |
 | Vier Sicherheits-Header jetzt, Content-Security-Policy später | Die Header sind trivial und Pflicht laut Security-Regeln. CSP braucht Nonces, Tests und eine Freigabe für Turnstile | CSP sofort | eine CSP als zusätzlicher XSS-Schutz fehlt vorerst → `docs/tech-debt.md` | 2026-10-06 |
 
-## Abweichungen von der Spec (werden per `/refine PROJ-1` nachgezogen)
+## Abweichungen von der Spec (per `/refine PROJ-1` am 2026-10-06 in die Spec übernommen: AC-22, EC-2)
 
 1. **CAPTCHA auch beim Login und beim Neuversand.** Die Produktentscheidung „kein CAPTCHA beim Login“ und AC-22 werden angepasst.
 2. **EC-2:** Ein schon benutzter Bestätigungslink führt zur Seite „ungültig oder abgelaufen“, mit dem Hinweis „schon bestätigt? Dann melde dich an“. Die Spec sagt bisher „/login mit Hinweis ‚bereits bestätigt‘“. Supabase kann „benutzt“ und „abgelaufen“ nicht unterscheiden.

@@ -64,7 +64,7 @@
 - [ ] **AC-21** — Angenommen ein Reset-Link ist abgelaufen oder wurde schon benutzt, wenn die Person ihn öffnet, dann sieht sie „Dieser Link ist ungültig oder abgelaufen“ und kann direkt einen neuen anfordern
 
 ### Schutz vor automatisierten Anfragen
-- [ ] **AC-22** — Angenommen ein automatisiertes Skript ruft das Registrierungs- oder das „Passwort vergessen“-Formular auf, wenn es ohne gelöstes CAPTCHA Konten anlegen oder Mails auslösen will, dann wird die Anfrage serverseitig abgelehnt, auch wenn das Formular im Browser umgangen wird
+- [ ] **AC-22** — Angenommen ein automatisiertes Skript ruft Registrierung, Login, „Passwort vergessen“ oder „Link erneut senden“ auf, wenn es dabei kein gelöstes CAPTCHA mitschickt, dann wird die Anfrage serverseitig abgelehnt. Das gilt auch, wenn das Skript die Oberfläche von WattWann umgeht und den Anmeldedienst direkt aufruft. Für normale Nutzer läuft das CAPTCHA meist unsichtbar im Hintergrund (kleines Prüffeld), eine Aufgabe erscheint nur bei Verdacht
 
 ### Datentrennung
 - [ ] **AC-23** — Angenommen es gibt zwei Konten A und B, wenn A versucht, das Profil von B zu lesen oder zu ändern, auch direkt über die Datenschnittstelle ohne die Oberfläche, dann erhält A keine Daten von B, und an B ändert sich nichts
@@ -77,7 +77,7 @@
 
 ## Edge Cases
 - **EC-1** — Angenommen eine Person klickt „Registrieren“ (oder „Anmelden“, „Link senden“) zweimal schnell hintereinander, wenn die Anfragen ankommen, dann entsteht höchstens ein Konto bzw. eine Mail. Der Button ist während des Sendens deaktiviert und zeigt einen Ladezustand
-- **EC-2** — Angenommen eine Adresse ist bereits bestätigt, wenn der Bestätigungslink ein zweites Mal geöffnet wird, dann landet die Person auf `/dashboard`, falls sie angemeldet ist, sonst auf `/login` mit dem Hinweis „Deine Adresse ist bereits bestätigt, bitte melde dich an“
+- **EC-2** — Angenommen ein Bestätigungslink wurde schon benutzt, wenn er ein zweites Mal geöffnet wird, dann landet die Person auf `/dashboard`, falls sie angemeldet ist. Sonst sieht sie dieselbe Seite wie bei einem abgelaufenen Link (EC-3): „Dieser Link ist ungültig oder abgelaufen. Hast du deine Adresse schon bestätigt? Dann melde dich einfach an.“ mit den Aktionen „Anmelden“ und „Neuen Link anfordern“
 - **EC-3** — Angenommen ein Bestätigungslink ist älter als 24 Stunden, wenn er geöffnet wird, dann sieht die Person „Dieser Link ist abgelaufen“ und kann einen neuen anfordern
 - **EC-4** — Angenommen der Mailversand schlägt fehl oder das Mail-Kontingent ist erschöpft, wenn eine Bestätigungs- oder Reset-Mail verschickt werden soll, dann sieht die Person „Wir konnten gerade keine E-Mail senden, bitte versuche es in einigen Minuten erneut“. Die Meldung verrät nicht, ob die Adresse registriert ist
 - **EC-5** — Angenommen die Verbindung zum Server bricht ab oder der Dienst antwortet nicht, wenn eine Person sich registriert, anmeldet oder ein Passwort setzt, dann erscheint ein Fehlerhinweis mit „Erneut versuchen“, und die E-Mail-Adresse bleibt im Formular erhalten
@@ -99,7 +99,7 @@
 - Gestaltung nach `docs/design-system.md` (Formularfelder, Fehler-, Lade- und Leerzustände)
 
 ## Offene Fragen
-- [ ] Reicht der eingebaute Mailversand von Supabase mit seinen niedrigen Stundenlimits für Tests mit mehreren Personen, oder braucht es einen eigenen kostenlosen Mail-Dienst? Das klärt `/architecture`. Ein neuer Dienst wäre ein weiterer Auftragsverarbeiter in `docs/privacy.md`
+- [x] Reicht der eingebaute Mailversand von Supabase mit seinen niedrigen Stundenlimits für Tests mit mehreren Personen, oder braucht es einen eigenen kostenlosen Mail-Dienst? → Nein, er reicht nicht (stellt nur an Supabase-Team-Mitglieder zu). Die Mails gehen über das bestehende Postfach max@kopp-beratung.de als Einzelabsender, ohne zusätzlichen Dienst (2026-10-06)
 - [ ] Greift für das private, nur lokal laufende Projekt die Haushaltsausnahme der DSGVO? Frage für einen Anwalt, siehe `docs/privacy.md`. Die Spec geht bis dahin davon aus, dass die Pflichten voll gelten
 
 ## Entscheidungsprotokoll
@@ -112,7 +112,7 @@
 | „Passwort vergessen“ gehört zum MVP | Der Mailversand existiert durch die Bestätigung ohnehin. Ohne Reset wären Konto und Geräte bei einem vergessenen Passwort verloren | 2026-10-06 |
 | Passwort mind. 8, max. 72 Zeichen, keine Pflicht-Sonderzeichen | Länge statt Zeichenzwang (aktuelle NIST-Empfehlung). 72 ist eine technische Obergrenze. Ein Abgleich mit geleakten Passwörtern ist im 0-€-Budget nicht verfügbar | 2026-10-06 |
 | Login-Sperre nach 5 Fehlversuchen pro E-Mail-Adresse in 15 Min., zusätzlich 20 pro IP-Adresse in 15 Min. | Bremst gezieltes Passwort-Raten und das Durchprobieren vieler Konten, ohne Laien bei Tippfehlern zu frustrieren | 2026-10-06 |
-| CAPTCHA bei Registrierung und „Passwort vergessen“, nicht beim Login | Diese beiden öffentlichen Formulare lösen Mails aus und schützen damit auch das knappe Mail-Kontingent. Den Login schützt die Sperre, ein CAPTCHA wäre dort bei jedem Login eine Hürde | 2026-10-06 |
+| ~~CAPTCHA bei Registrierung und „Passwort vergessen“, nicht beim Login~~ (ersetzt am 2026-10-06, siehe unten) | Diese beiden öffentlichen Formulare lösen Mails aus und schützen damit auch das knappe Mail-Kontingent. Den Login schützt die Sperre, ein CAPTCHA wäre dort bei jedem Login eine Hürde | 2026-10-06 |
 | Registrierung mit bereits vorhandener Adresse und „Passwort vergessen“ antworten immer gleich | Verrät nicht, wer ein Konto hat (Schutz gegen Konto-Ausforschung) | 2026-10-06 |
 | Optionaler Anzeigename (1–50 Zeichen), später änderbar, sonst wird die E-Mail-Adresse angezeigt | Persönliche Ansprache ohne Pflichtfeld. Änderbarkeit erfüllt zugleich das Recht auf Berichtigung | 2026-10-06 |
 | `/` leitet direkt weiter, keine Landingpage | Die App läuft nur lokal und braucht keine Werbeseite | 2026-10-06 |
@@ -121,3 +121,6 @@
 | Kontolöschung sofort und endgültig, in der App | Recht auf Löschung (Art. 17 DSGVO), ohne manuellen Aufwand. Es gibt keine gesetzlichen Aufbewahrungspflichten, die dagegen sprechen | 2026-10-06 |
 | Kontaktadresse für Datenschutzanfragen: max@kopp-beratung.de | Vom Verantwortlichen festgelegt. Sie steht in den Datenschutzhinweisen (AC-26) | 2026-10-06 |
 | Unbestätigte Konten werden nach 7 Tagen gelöscht | Speicherbegrenzung: Eine nie bestätigte Adresse gehört womöglich gar nicht der Person, die sie eingegeben hat | 2026-10-06 |
+| CAPTCHA (meist unsichtbar) auch beim Login und bei „Link erneut senden“, ersetzt „nicht beim Login“ | In `/architecture` erkannt: Ein CAPTCHA schützt nur, wenn der Anmeldedienst es selbst prüft, und der prüft es dann für alle diese Formulare. Ohne das könnte ein Skript CAPTCHA und Login-Sperre umgehen. Weil es meist unsichtbar läuft, bleibt die Hürde beim Login klein | 2026-10-06 |
+| Schon benutzter und abgelaufener Bestätigungslink führen zur selben Hinweisseite (EC-2) | Der Anmeldedienst kann „schon benutzt“ und „abgelaufen“ nicht unterscheiden. Die gemeinsame Seite bietet beide Auswege: anmelden oder neuen Link anfordern | 2026-10-06 |
+| Bestätigungs- und Reset-Mails kommen von max@kopp-beratung.de (Einzelabsender) | Schlank: kein zusätzlicher Mail-Dienst, kein weiteres Konto. Dafür landen die Mails eher im Spam-Ordner | 2026-10-06 |
