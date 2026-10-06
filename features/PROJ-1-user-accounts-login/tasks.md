@@ -32,15 +32,15 @@
 - [x] T15 [P]  Server Actions „Passwort vergessen“ (immer gleiche Meldung) und „Neues Passwort setzen“ (nur mit Reset-Sitzung), mit Tests  · files: src/lib/auth/actions/password.ts, src/lib/auth/actions/password.test.ts  · → AC-19, AC-20, EC-8
 - [x] T16 [P]  Server Actions „Anzeigename ändern“ (nur eigenes Profil) und „Konto löschen“ (ID aus geprüfter Sitzung, Admin-Löschung, Abmelden, Weiterleitung mit Hinweis), mit Tests  · files: src/lib/auth/actions/account.ts, src/lib/auth/actions/account.test.ts  · → AC-18, AC-25, EC-6, EC-10, EC-11
 - [x] T17 [P]  Endpunkt `/auth/confirm`: `token_hash` prüfen, `signup` → `/dashboard`, `recovery` → 1-h-Prüfung über `recovery_sent_at` → `/reset-password`, ungültig → `/dashboard` (falls angemeldet) oder `/auth/link-invalid?typ=…`, mit Tests  · files: src/app/auth/confirm/route.ts, src/app/auth/confirm/route.test.ts  · → AC-4, AC-20, AC-21, EC-2, EC-3, EC-9
-- [ ] T18 [user]  App-Passwort für den Mailversand  · where: Google-Konto `max@kopp-beratung.de` → Sicherheit → Bestätigung in zwei Schritten an → App-Passwörter → „WattWann Supabase“ (falls die Option fehlt: Google-Admin-Konsole → App-Passwörter für den Nutzer erlauben)  · → AC-1, AC-5, AC-19
-- [ ] T19 [user]  Eigener SMTP-Server in Supabase  · where: Supabase → Authentication → Emails → SMTP Settings → Host `smtp.gmail.com`, Port 587, Benutzer `max@kopp-beratung.de`, Passwort = App-Passwort aus T18, Absender `max@kopp-beratung.de`, Name „WattWann“  · → AC-1, AC-5, AC-19, EC-4
-- [ ] T20 [user]  Mail-Limit  · where: Supabase → Authentication → Rate Limits → „emails sent per hour“ = 30; Authentication → Attack Protection → CAPTCHA bleibt **aus**  · → EC-4
-- [ ] T21 [user]  E-Mail-Bestätigung einschalten  · where: Supabase → Authentication → Sign In / Providers → Email → „Confirm email“ = an  · → AC-4, AC-6
-- [ ] T22 [user]  Link-Gültigkeit  · where: dort → „Email OTP Expiration“ = 86400 Sekunden  · → AC-4, AC-20, EC-3
-- [ ] T23 [user]  Passwort-Regeln  · where: dort → „Minimum password length“ = 8, keine Pflicht-Zeichenklassen; Authentication → Attack Protection → Leaked-Password-Schutz bleibt aus (nur Pro-Plan)  · → AC-2
-- [ ] T24 [user]  Mail-Vorlage „Confirm signup“  · where: Supabase → Authentication → Emails → Templates → „Confirm signup“; deutscher Text (liefert `/build` in der Übergabe), Link `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup`  · → AC-4
-- [ ] T25 [user]  Mail-Vorlage „Reset password“  · where: dort → „Reset password“; deutscher Text mit „gilt 1 Stunde“ (liefert `/build`), Link `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`  · → AC-19, AC-20
-- [ ] T26 [user]  Site-URL und erlaubte Weiterleitungen  · where: Supabase → Authentication → URL Configuration → Site URL `http://localhost:3000`, Redirect URLs `http://localhost:3000/**`  · → AC-4, AC-20
+- [x] T18 [user]  App-Passwort für den Mailversand  · where: Google-Konto `max@kopp-beratung.de` → Sicherheit → Bestätigung in zwei Schritten an → App-Passwörter → „WattWann Supabase“ (falls die Option fehlt: Google-Admin-Konsole → App-Passwörter für den Nutzer erlauben)  · → AC-1, AC-5, AC-19
+- [x] T19 [user]  Eigener SMTP-Server in Supabase  · where: Supabase → Authentication → Emails → SMTP Settings → Host `smtp.gmail.com`, Port 587, Benutzer `max@kopp-beratung.de`, Passwort = App-Passwort aus T18, Absender `max@kopp-beratung.de`, Name „WattWann“  · → AC-1, AC-5, AC-19, EC-4
+- [x] T20 [user]  Mail-Limit  · where: Supabase → Authentication → Rate Limits → „emails sent per hour“ = 30; Authentication → Attack Protection → CAPTCHA bleibt **aus**  · → EC-4
+- [x] T21 [user]  E-Mail-Bestätigung einschalten  · where: Supabase → Authentication → Sign In / Providers → Email → „Confirm email“ = an  · → AC-4, AC-6
+- [x] T22 [user]  Link-Gültigkeit  · where: dort → „Email OTP Expiration“ = 86400 Sekunden  · → AC-4, AC-20, EC-3
+- [x] T23 [user]  Passwort-Regeln  · where: dort → „Minimum password length“ = 8, keine Pflicht-Zeichenklassen; Authentication → Attack Protection → Leaked-Password-Schutz bleibt aus (nur Pro-Plan)  · → AC-2
+- [x] T24 [user]  Mail-Vorlage „Confirm signup“  · where: Supabase → Authentication → Emails → Templates → „Confirm signup“; deutscher Text (liefert `/build` in der Übergabe), Link `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup`  · → AC-4
+- [x] T25 [user]  Mail-Vorlage „Reset password“  · where: dort → „Reset password“; deutscher Text mit „gilt 1 Stunde“ (liefert `/build`), Link `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`  · → AC-19, AC-20
+- [x] T26 [user]  Site-URL und erlaubte Weiterleitungen  · where: Supabase → Authentication → URL Configuration → Site URL `http://localhost:3000`, Redirect URLs `http://localhost:3000/**`  · → AC-4, AC-20
 
 ## Ebene 4 — Oberfläche
 
