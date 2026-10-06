@@ -244,9 +244,9 @@ Alle Einstellungen sind `now`: Es gibt kein Deployment, das Supabase-Projekt (�
 | Setting | Where | When | Value | Why | → AC |
 | --- | --- | --- | --- | --- | --- |
 | Supabase-CLI anmelden und Projekt verknüpfen | Terminal: `supabase login`, dann `supabase link --project-ref <ref>` (fragt nach dem Datenbank-Passwort) | now | Projekt-Ref aus der Dashboard-URL | ohne Verknüpfung kann `/build` die Migrationen nicht einspielen | AC-3, AC-23, AC-24, AC-27 |
-| SMTP-Zugang des Postfachs | beim Mail-Anbieter von `kopp-beratung.de`: SMTP-Host, Port und Zugangsdaten nachsehen, ggf. ein App-Passwort erzeugen bzw. SMTP-Versand freischalten | now | Absender `max@kopp-beratung.de`, Name „WattWann“ | Supabase stellt ohne eigenen SMTP-Server nur an Team-Mitglieder zu, max. 2 Mails/Stunde | AC-1, AC-5, AC-19 |
-| Eigener SMTP-Dienst | Supabase → Authentication → Emails → SMTP Settings | now | Host, Port (meist 587) und Zugangsdaten des Postfachs, Absender wie oben | dto. Die Zugangsdaten liegen nur im Supabase-Dashboard, nie im Repo | AC-1, AC-5, AC-19, EC-4 |
-| Mail-Limit | Supabase → Authentication → Rate Limits → „emails sent per hour“ | now | 30 (Standard mit eigenem SMTP) | deckt Tests mit mehreren Personen und bleibt unter den üblichen Versandgrenzen eines normalen Postfachs | EC-4 |
+| App-Passwort für das Postfach | Google-Konto `max@kopp-beratung.de` → Sicherheit → Bestätigung in zwei Schritten (muss an sein) → App-Passwörter → neues App-Passwort „WattWann Supabase“. Falls die Option fehlt: in der Google-Admin-Konsole App-Passwörter bzw. SMTP-Zugriff für den Nutzer erlauben | now | Absender `max@kopp-beratung.de`, Name „WattWann“ | Supabase stellt ohne eigenen SMTP-Server nur an Team-Mitglieder zu, max. 2 Mails/Stunde | AC-1, AC-5, AC-19 |
+| Eigener SMTP-Dienst | Supabase → Authentication → Emails → SMTP Settings | now | Host `smtp.gmail.com`, Port 587, Benutzer `max@kopp-beratung.de`, Passwort = App-Passwort, Absender wie oben | dto. Die Zugangsdaten liegen nur im Supabase-Dashboard, nie im Repo | AC-1, AC-5, AC-19, EC-4 |
+| Mail-Limit | Supabase → Authentication → Rate Limits → „emails sent per hour“ | now | 30 (Standard mit eigenem SMTP) | deckt Tests mit mehreren Personen und bleibt weit unter Googles Versandgrenze von rund 2.000 Mails pro Tag und Nutzer | EC-4 |
 | E-Mail-Bestätigung an | Supabase → Authentication → Sign In / Providers → Email → „Confirm email“ | now | an | Login erst nach Bestätigung | AC-4, AC-6 |
 | Link-Gültigkeit | dort → „Email OTP Expiration“ | now | 86400 Sekunden (24 h) | Bestätigungslink gilt 24 h. Den Reset-Link begrenzt die App selbst auf 1 h | AC-4, AC-20, EC-3 |
 | Mindestlänge Passwort | dort → „Minimum password length“ | now | 8, keine Pflicht-Zeichenklassen | zweite Prüfung neben der Server Action | AC-2 |
@@ -257,7 +257,7 @@ Alle Einstellungen sind `now`: Es gibt kein Deployment, das Supabase-Projekt (�
 | Turnstile-Widget anlegen | Cloudflare-Dashboard → Turnstile → Add widget | now | Modus „Managed“, Hostname `localhost` hinzufügen | echte Prüfung auch lokal. Den Site Key trägst du in `.env.local` ein | AC-22 |
 | CAPTCHA in Supabase einschalten | Supabase → Authentication → Attack Protection → Enable Captcha protection | now | Anbieter Turnstile, Secret Key aus Cloudflare | Supabase lehnt Registrierung, Login, Reset und Neuversand ohne gültiges Token ab, auch bei direkten Aufrufen | AC-22, AC-10 |
 | Schlüssel in `.env.local` | `.env.local` (trägst du selbst ein) | now | `SUPABASE_SERVICE_ROLE_KEY` aus Supabase → Project Settings → API Keys (secret/service_role), `NEXT_PUBLIC_TURNSTILE_SITE_KEY` aus Cloudflare | Server-Funktionen und Widget | AC-10, AC-22, AC-25 |
-| AVV / DPA abschließen | Supabase → Organization Settings → Legal Documents · Cloudflare → DPA (Self-Serve Subscription Agreement) | now | — | Auftragsverarbeitung nach Art. 28 DSGVO, siehe `docs/privacy.md` | AC-26 |
+| AVV / DPA abschließen | Supabase → Organization Settings → Legal Documents · Google Workspace → Admin-Konsole → Konto → Rechtliches und Compliance · Cloudflare → DPA (Self-Serve Subscription Agreement) | now | — | Auftragsverarbeitung nach Art. 28 DSGVO, siehe `docs/privacy.md` | AC-26 |
 
 ## Technical Decisions
 
@@ -291,5 +291,5 @@ Alle Einstellungen sind `now`: Es gibt kein Deployment, das Supabase-Projekt (�
 
 ## Open Questions
 
-- [ ] Bei welchem Anbieter liegt das Postfach `max@kopp-beratung.de`? Er wird Auftragsverarbeiter für die Bestätigungs- und Reset-Mails und muss in `docs/privacy.md` eingetragen werden.
+- [x] Bei welchem Anbieter liegt das Postfach `max@kopp-beratung.de`? → Google Workspace, als Auftragsverarbeiter in `docs/privacy.md` eingetragen (2026-10-06)
 - [ ] Automatisierte Tests in `/qa` mit echtem Turnstile: Falls das Widget dort eine Aufgabe zeigt, werden für den Testlauf vorübergehend die Cloudflare-Testschlüssel eingesetzt. Das entscheidet `/qa`.
