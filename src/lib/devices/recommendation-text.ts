@@ -8,7 +8,11 @@ import { formatCt } from '@/lib/prices/price-math'
 import { formatDuration } from './schemas'
 import type { Recommendation } from './types'
 
-const NBSP = ' '
+const NBSP = '\u00a0'
+
+// Number and unit (and Ø and number) never wrap apart on a narrow card: 'Ø 8,4 ct/kWh', '13:15 Uhr'.
+const ct = (priceEurMwh: number) => `${formatCt(priceEurMwh)}${NBSP}ct/kWh`
+const avg = (priceEurMwh: number) => `Ø${NBSP}${ct(priceEurMwh)}`
 
 export const RECOMMENDATION_TEXTS = {
   pricesUnavailable: 'Empfehlung gerade nicht verfügbar – die Strompreise konnten nicht geladen werden.',
@@ -60,7 +64,7 @@ export function clockText(instant: string, now: Date, asEnd = false): string {
   }
 
   const prefix = day > berlinToday(now) ? 'morgen ' : ''
-  return `${prefix}um ${time} Uhr${suffix}`
+  return `${prefix}um ${time}${NBSP}Uhr${suffix}`
 }
 
 // EUR/MWh → integer tenths of ct/kWh, rounded exactly like formatCt (one tenth of ct/kWh = 1 EUR/MWh).
@@ -76,13 +80,13 @@ function shownTenths(priceEurMwh: number): number {
 export function comparisonText(immediateAvgEurMwh: number, bestAvgEurMwh: number): string {
   const immediate = shownTenths(immediateAvgEurMwh)
   const diff = immediate - shownTenths(bestAvgEurMwh)
-  const now = `Sofort: Ø ${formatCt(immediateAvgEurMwh)} ct/kWh`
+  const now = `Sofort: ${avg(immediateAvgEurMwh)}`
 
-  if (diff <= 0) return `${now} – kaum Unterschied (unter 0,1 ct/kWh)`
+  if (diff <= 0) return `${now} – kaum Unterschied (unter 0,1${NBSP}ct/kWh)`
 
   // No percentage when the average from now is 0 or negative (EC-3).
   const percent = immediate > 0 ? ` (${Math.round((diff / immediate) * 100)}${NBSP}%)` : ''
-  return `${now} – du sparst ${formatCt(diff)} ct/kWh${percent}`
+  return `${now} – du sparst ${ct(diff)}${percent}`
 }
 
 /** All texts of one card, from the computed recommendation. */
@@ -102,7 +106,7 @@ export function recommendationText(
 
   const { best, startsNow, immediateAvgEurMwh, tomorrowMissing } = recommendation
   const start = startsNow ? 'Jetzt starten' : `Starte ${clockText(best.start, now)}`
-  const headline = `${start} · fertig ${clockText(best.end, now, true)} · Ø ${formatCt(best.avgEurMwh)} ct/kWh`
+  const headline = `${start} · fertig ${clockText(best.end, now, true)} · ${avg(best.avgEurMwh)}`
 
   let detail: string | null = null
   if (startsNow) detail = RECOMMENDATION_TEXTS.noCheaper

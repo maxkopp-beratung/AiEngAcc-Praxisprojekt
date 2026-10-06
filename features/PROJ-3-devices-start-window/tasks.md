@@ -33,7 +33,7 @@
 
 ## Ebene 5 — Abschluss
 
-- [ ] T13  Prüfung im laufenden System: Gerät aus Vorschlag anlegen, bearbeiten, löschen; Empfehlung stichprobenartig gegen die Preise im Abschnitt „Strompreise“ nachrechnen; Browser bei 360 px (kein horizontales Scrollen, 40-Zeichen-Name, Name mit HTML) und komplett per Tastatur; volle Testsuite; Korrekturen in den betroffenen Dateien aus T9–T12  · files: — (Prüfung; Korrekturen nur in Dateien aus T9–T12)  · → AC-1, AC-5, AC-21, AC-25, EC-12, EC-13
+- [x] T13  Prüfung im laufenden System: Gerät aus Vorschlag anlegen, bearbeiten, löschen; Empfehlung stichprobenartig gegen die Preise im Abschnitt „Strompreise“ nachrechnen; Browser bei 360 px (kein horizontales Scrollen, 40-Zeichen-Name, Name mit HTML) und komplett per Tastatur; volle Testsuite; Korrekturen in den betroffenen Dateien aus T9–T12  · files: — (Prüfung; Korrekturen nur in Dateien aus T9–T12)  · → AC-1, AC-5, AC-21, AC-25, EC-12, EC-13
 
 ## Parallelisierung
 

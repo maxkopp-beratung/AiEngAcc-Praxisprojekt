@@ -262,6 +262,18 @@ Keine. Die Tabelle, ihre Rechte und der Trigger kommen per Migration. Es gibt ke
 | Kein eigenes Rate-Limit auf die Server Actions | Sie prüfen keine Zugangsdaten; Massenanlage begrenzt die Höchstzahl von 20, jede Action wirkt nur auf eigene Daten. | Throttle pro Nutzer | Ein angemeldeter Nutzer kann viele Änderungen hintereinander schicken; das kostet nur Server- und Datenbank-CPU. | 2026-10-06 |
 | Fremdschlüssel auf `profiles` statt direkt auf `auth.users` | Entspricht dem Datenmodell (ein Profil besitzt viele Geräte). Die Lösch-Kaskade Auth-Nutzer → Profil → Geräte erfüllt AC-27 ohne eigenen Code. | Fremdschlüssel auf `auth.users` | Ein Gerät setzt ein Profil voraus – das legt der Trigger von PROJ-1 bei jeder Registrierung an. | 2026-10-06 |
 
+## Umsetzungsnotizen (`/build`)
+
+- **Migration eingespielt:** `20261006000005_devices.sql` liegt per `supabase db push` im verknüpften Supabase-Projekt (Strategie `single`, also live). Der Integrationstest `src/lib/supabase/devices.integration.test.ts` bestätigt gegen die echte Datenbank: Eigentum, Spaltenrechte (`42501` schon beim Setzen von `user_id`/`created_at`), Prüfregeln (`23514`), eindeutiger Name (`23505`), Höchstzahl auch bei gleichzeitigen Einfügungen und bei einem Sammel-Insert von 21 Zeilen (`P0001 device_limit_reached`), Lösch-Kaskade beim Konto.
+- **`invalid` ohne Liste:** Abweichend von „Ergebnis enthält die aktuelle Liste“ liefern die Server Actions bei Feldfehlern keine Liste mit. Die Prüfung schlägt vor jedem Datenbankzugriff fehl, es hat sich also nichts geändert.
+- **`useLivePrices` mit Überladungen:** Der Hook nimmt ein Startpaket oder `null` und hat zusätzlich `handover`. Wer mit einem Paket startet, bekommt weiterhin ein nicht-nullbares `payload`, deshalb blieben die PROJ-2-Tests unverändert. Ein `retry()` vor der Übergabe übernimmt die Serverantwort; eine spätere Übergabe wird dann ignoriert.
+- **Geschützte Leerzeichen in den Empfehlungstexten:** Bei 360 px brach „Ø“ von der Zahl und die Zahl von „ct/kWh“ bzw. die Uhrzeit von „Uhr“ ab. Die Texte nutzen dort jetzt geschützte Leerzeichen; sichtbar ist derselbe Wortlaut.
+- **Dialog-Vorbelegung ohne Vorschlag:** leerer Name und 1:00 h (die Spec legt keinen Standard fest).
+- **Lösch-Dialog lässt sich während des Löschens nicht schließen** (Escape/Hintergrund), damit nichts doppelt gelöscht wird. Den Dialog schließt danach der Abschnitt.
+- **Fokus nach dem ersten Speichern:** Wird das erste Gerät aus dem Leerzustand angelegt, verschwindet der Button, der den Dialog geöffnet hat. Der Fokus landet danach auf der Seite statt auf einem Element im Abschnitt. Bedienbar bleibt alles per Tastatur; ein gezieltes Zurücksetzen des Fokus ist nicht gebaut.
+- **Prüfung im laufenden System (T13):** Anlegen aus Vorschlag, Bearbeiten, Duplikat, HTML-Name, 40-Zeichen-Name und Löschen im echten Dashboard; Empfehlung gegen `/api/prices` per Brute Force nachgerechnet (gleiches Fenster, gleicher Durchschnitt, gleiche Ersparnis). Bei 360 px (Playwright, Wegwerf-Konto) kein horizontales Scrollen, Dialog 360 px breit, Menü, Rückfrage und Löschen komplett per Tastatur. Der Menü-Button ragt absichtlich 8 px in den Innenabstand der Karte (bündig zum Rand), sichtbar überläuft nichts.
+- **Sub-Agenten ohne Worktree-Isolation** wie bei PROJ-2: Eine Isolation wäre von `main` abgezweigt. Die `[P]`-Aufgaben hatten disjunkte Dateien, Git-Befehle lagen nur beim Hauptagenten.
+
 ## Open Questions
 
 - [x] Preislücken (Slots ohne Preis in den Quelldaten, PROJ-2 EC-4) waren in der Spec nicht beschrieben. → Per `/refine PROJ-3` als EC-14 ergänzt, mit eigenem Hinweistext; das Design setzt es als Zustand `price_gaps` um (2026-10-06)

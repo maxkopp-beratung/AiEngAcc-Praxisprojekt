@@ -1,14 +1,18 @@
-import {
-  clockText,
-  comparisonText,
-  notEnoughPricesText,
-  priceGapsText,
-  recommendationText,
-  RECOMMENDATION_TEXTS,
-} from './recommendation-text'
+import * as texts from './recommendation-text'
+import { notEnoughPricesText, priceGapsText, RECOMMENDATION_TEXTS } from './recommendation-text'
 import type { Recommendation } from './types'
 
-const NBSP = ' '
+const NBSP = '\u00a0'
+// The texts use non-breaking spaces so number and unit never wrap apart (checked separately below);
+// the other tests compare the visible wording with plain spaces.
+const plain = (value: string | null) => (value === null ? null : value.replaceAll(NBSP, ' '))
+const clockText = (...args: Parameters<typeof texts.clockText>) => plain(texts.clockText(...args))
+const comparisonText = (...args: Parameters<typeof texts.comparisonText>) => plain(texts.comparisonText(...args))
+function recommendationText(...args: Parameters<typeof texts.recommendationText>) {
+  const result = texts.recommendationText(...args)
+  if (result.kind === 'notice') return { ...result, text: plain(result.text) }
+  return { ...result, headline: plain(result.headline), detail: plain(result.detail), tomorrowHint: plain(result.tomorrowHint) }
+}
 // 2026-10-06 is a normal day in summer time (UTC+2): 13:00 Berlin = 11:00Z.
 const NOW = new Date('2026-10-06T11:07:00Z')
 
@@ -73,15 +77,15 @@ describe('clockText (AC-15, EC-2)', () => {
 describe('comparisonText (AC-16, EC-3, EC-4)', () => {
   it('shows saving and percentage from the shown, rounded averages', () => {
     // 11,7 − 8,4 = 3,3; 3,3 / 11,7 = 28 %.
-    expect(comparisonText(117, 84)).toBe(`Sofort: Ø 11,7 ct/kWh – du sparst 3,3 ct/kWh (28${NBSP}%)`)
+    expect(comparisonText(117, 84)).toBe(`Sofort: Ø 11,7 ct/kWh – du sparst 3,3 ct/kWh (28 %)`)
     // Unrounded 117.44 − 83.56 = 33.88 would read 3,4 — the card must add up to 11,7 − 8,4 = 3,3.
-    expect(comparisonText(117.44, 83.56)).toBe(`Sofort: Ø 11,7 ct/kWh – du sparst 3,3 ct/kWh (28${NBSP}%)`)
+    expect(comparisonText(117.44, 83.56)).toBe(`Sofort: Ø 11,7 ct/kWh – du sparst 3,3 ct/kWh (28 %)`)
   })
 
   it('rounds the percentage to whole percent', () => {
     // 1,0 / 3,0 = 33,3 % → 33; 2,0 / 3,0 = 66,7 % → 67.
-    expect(comparisonText(30, 20)).toContain(`(33${NBSP}%)`)
-    expect(comparisonText(30, 10)).toContain(`(67${NBSP}%)`)
+    expect(comparisonText(30, 20)).toContain(`(33 %)`)
+    expect(comparisonText(30, 10)).toContain(`(67 %)`)
   })
 
   it('drops the percentage when the average from now is 0 or negative (EC-3)', () => {
@@ -110,7 +114,7 @@ describe('recommendationText', () => {
     expect(recommendationText(rec(), NOW, 150)).toEqual({
       kind: 'recommendation',
       headline: 'Starte um 13:15 Uhr · fertig um 15:45 Uhr · Ø 8,4 ct/kWh',
-      detail: `Sofort: Ø 11,7 ct/kWh – du sparst 3,3 ct/kWh (28${NBSP}%)`,
+      detail: `Sofort: Ø 11,7 ct/kWh – du sparst 3,3 ct/kWh (28 %)`,
       tomorrowHint: null,
     })
   })
@@ -163,5 +167,17 @@ describe('recommendationText', () => {
       kind: 'notice',
       text: priceGapsText(150),
     })
+  })
+})
+
+describe('line breaks on narrow cards', () => {
+  it('keeps Ø, number and unit as well as time and "Uhr" together', () => {
+    const result = texts.recommendationText(rec(), NOW, 150)
+    expect(result.kind === 'recommendation' && result.headline).toBe(
+      `Starte um 13:15${NBSP}Uhr · fertig um 15:45${NBSP}Uhr · Ø${NBSP}8,4${NBSP}ct/kWh`
+    )
+    expect(texts.comparisonText(117, 84)).toBe(
+      `Sofort: Ø${NBSP}11,7${NBSP}ct/kWh – du sparst 3,3${NBSP}ct/kWh (28${NBSP}%)`
+    )
   })
 })
