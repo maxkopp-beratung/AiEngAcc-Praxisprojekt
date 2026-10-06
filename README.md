@@ -1,3 +1,81 @@
+# WattWann
+
+WattWann zeigt die Day-ahead-Strompreise für heute und morgen und empfiehlt pro Gerät (Waschmaschine, Spülmaschine, E-Auto) das günstigste Startfenster. Produktbeschreibung: [docs/PRD.md](docs/PRD.md) · Feature-Status: [features/INDEX.md](features/INDEX.md)
+
+## Lokal starten
+
+Die App läuft lokal mit `npm run dev`. Login und Geräte liegen in Supabase, die Strompreise kommen ohne Schlüssel von der Energy-Charts API. Es sind **keine Zugangsdaten im Repository** – du brauchst ein eigenes, kostenloses Supabase-Projekt. Die Einrichtung dauert etwa 15 Minuten.
+
+**Voraussetzungen:** Node.js ≥ 20.9 (getestet mit 22), npm und ein Supabase-Konto (Free Plan reicht). Die Supabase-CLI läuft über `npx`, eine Installation ist nicht nötig.
+
+### 1. Repository klonen
+
+```bash
+git clone https://github.com/maxkopp-beratung/AiEngAcc-Praxisprojekt.git
+cd AiEngAcc-Praxisprojekt
+npm install
+```
+
+### 2. Supabase-Projekt anlegen
+
+Auf [supabase.com](https://supabase.com) ein neues Projekt anlegen, als Region **Frankfurt (eu-central-1)**. Das Datenbank-Passwort brauchst du gleich noch einmal.
+
+### 3. Datenbank einrichten
+
+Die Migrationen in [supabase/migrations/](supabase/migrations/) legen alle Tabellen, RLS-Policies, Rechte und den stündlichen Aufräum-Job (pg_cron) an.
+
+```bash
+npx supabase login
+npx supabase link --project-ref <projekt-ref>   # Ref steht in der Dashboard-URL: supabase.com/dashboard/project/<ref>
+npx supabase db push
+```
+
+Ohne CLI geht es auch so: Den Inhalt der fünf `.sql`-Dateien **in der Reihenfolge der Dateinamen** im SQL-Editor des Dashboards ausführen.
+
+### 4. Auth im Supabase-Dashboard einstellen
+
+Diese Einstellungen lassen sich nicht per Migration setzen. Ohne sie funktionieren die Links in den Bestätigungs- und Reset-Mails nicht.
+
+| Wo (Supabase → Authentication → …) | Was |
+| --- | --- |
+| **URL Configuration** | Site URL `http://localhost:3000`, Redirect URLs `http://localhost:3000/**` |
+| **Emails → Templates → Confirm signup** | Inhalt von [supabase/templates/confirm-signup.html](supabase/templates/confirm-signup.html) einfügen, Betreff steht im Kommentar oben in der Datei |
+| **Emails → Templates → Reset password** | Inhalt von [supabase/templates/reset-password.html](supabase/templates/reset-password.html) einfügen, Betreff ebenso |
+| **Sign In / Providers → Email** | „Confirm email“ an, „Minimum password length“ 8, „Email OTP Expiration“ 86400 |
+
+**Mailversand:** Ohne eigenen SMTP-Server stellt Supabase Mails nur an Mitglieder der eigenen Supabase-Organisation zu, höchstens 2 pro Stunde. Zum Ausprobieren mit deiner eigenen Adresse reicht das. Für weitere Testkonten ohne Mail: *Authentication → Users → Add user* mit „Auto Confirm User“. Wer echten Versand möchte, trägt unter *Emails → SMTP Settings* einen eigenen SMTP-Zugang ein.
+
+### 5. Schlüssel in `.env.local` eintragen
+
+```bash
+cp .env.local.example .env.local
+```
+
+Dann in `.env.local` die drei Werte aus dem eigenen Projekt eintragen:
+
+| Variable | Woher |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → Data API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Project Settings → API Keys → Publishable Key (oder Legacy „anon“) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Project Settings → API Keys → Secret Key (oder Legacy „service_role“) |
+
+Der Secret Key umgeht RLS: Er darf nie ein `NEXT_PUBLIC_`-Präfix bekommen und nie ins Repository. `.env.local` ist über `.gitignore` ausgeschlossen.
+
+### 6. Starten
+
+```bash
+npm run dev    # → http://localhost:3000
+```
+
+Registrieren, Mail bestätigen (oder ein Konto per „Auto Confirm User“ anlegen), einloggen, Gerät anlegen – das Dashboard zeigt Preise und Startfenster.
+
+```bash
+npm test       # Unit- und Integrationstests (Vitest), brauchen keine Supabase-Verbindung
+npm run lint
+```
+
+---
+
 # AI Engineering Kit
 
 > A spec-driven workflow for [Claude Code](https://docs.anthropic.com/en/docs/claude-code): turn an idea into a production-ready web app, one feature at a time — Requirements → Architecture → Tasks → Build → QA → Deploy.
