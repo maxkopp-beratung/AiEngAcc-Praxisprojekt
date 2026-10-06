@@ -17,13 +17,13 @@
 
 ## Ebene 2 — Server-Grundlagen & gemeinsame Bausteine
 
-- [ ] T6  Migrationen aus Ebene 1 einspielen (`supabase db push`, vorher `--dry-run` zeigen) und per `supabase migration list` bestätigen. Läuft vor den `[P]`-Aufgaben, braucht T5. Achtung, „single“: Das ist das Live-Projekt  · files: — (nur Befehle)  · → AC-3, AC-23, AC-24, AC-27
-- [ ] T7 [P]  Admin-Client (Service-Rolle, `server-only`), Ermittlung von IP-Adresse und SHA-256-Hashes, Login-Sperre als Server-Modul (Status abfragen, Fehlversuch eintragen, „X Minuten“ berechnen) mit Tests  · files: src/lib/supabase/admin.ts, src/lib/auth/request-meta.ts, src/lib/auth/throttle.ts, src/lib/auth/throttle.test.ts  · → AC-10, AC-11
-- [ ] T8 [P]  Zod-Schemas (E-Mail normalisieren, Passwort 8–72 Zeichen / ≤ 72 Bytes, Anzeigename), sicheres Rücksprungziel und Cookie `pending_email`, mit Tests  · files: src/lib/auth/schemas.ts, src/lib/auth/schemas.test.ts, src/lib/auth/safe-redirect.ts, src/lib/auth/safe-redirect.test.ts, src/lib/auth/pending-email.ts  · → AC-2, AC-13, EC-7, EC-10, EC-12
-- [ ] T9 [P]  `src/proxy.ts`: Sitzung auffrischen, Weiterleitungsregeln für `/`, `/dashboard…`, `/login` und `/signup` als testbare Funktion, mit Tests  · files: src/proxy.ts, src/lib/auth/route-rules.ts, src/lib/auth/route-rules.test.ts  · → AC-12, AC-13, AC-14, AC-15
-- [ ] T10 [P]  Sicherheits-Header (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Strict-Transport-Security`)  · files: next.config.ts  · → Technische Anforderungen (Sicherheit)
-- [ ] T11 [P]  App-Rahmen-Grundlagen: Root-Layout (Deutsch, Titel „WattWann“, Inter, Toaster), Startseite als Weiterleitung, Layout der Auth-Seiten, `AuthCard`  · files: src/app/layout.tsx, src/app/page.tsx, src/app/(auth)/layout.tsx, src/components/auth/auth-card.tsx  · → AC-14
-- [ ] T12 [user]  Schlüssel in `.env.local` eintragen  · where: `.env.local` → `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API Keys, secret/service_role, **ohne** `NEXT_PUBLIC_`)  · → AC-7, AC-10, AC-25
+- [x] T6  Migrationen aus Ebene 1 einspielen (`supabase db push`, vorher `--dry-run` zeigen) und per `supabase migration list` bestätigen. Läuft vor den `[P]`-Aufgaben, braucht T5. Achtung, „single“: Das ist das Live-Projekt  · files: — (nur Befehle)  · → AC-3, AC-23, AC-24, AC-27
+- [x] T7 [P]  Admin-Client (Service-Rolle, `server-only`), Ermittlung von IP-Adresse und SHA-256-Hashes, Login-Sperre als Server-Modul (Status abfragen, Fehlversuch eintragen, „X Minuten“ berechnen) mit Tests  · files: src/lib/supabase/admin.ts, src/lib/auth/request-meta.ts, src/lib/auth/throttle.ts, src/lib/auth/throttle.test.ts  · → AC-10, AC-11
+- [x] T8 [P]  Zod-Schemas (E-Mail normalisieren, Passwort 8–72 Zeichen / ≤ 72 Bytes, Anzeigename), sicheres Rücksprungziel und Cookie `pending_email`, mit Tests  · files: src/lib/auth/schemas.ts, src/lib/auth/schemas.test.ts, src/lib/auth/safe-redirect.ts, src/lib/auth/safe-redirect.test.ts, src/lib/auth/pending-email.ts  · → AC-2, AC-13, EC-7, EC-10, EC-12
+- [x] T9 [P]  `src/proxy.ts`: Sitzung auffrischen, Weiterleitungsregeln für `/`, `/dashboard…`, `/login` und `/signup` als testbare Funktion, mit Tests  · files: src/proxy.ts, src/lib/auth/route-rules.ts, src/lib/auth/route-rules.test.ts  · → AC-12, AC-13, AC-14, AC-15
+- [x] T10 [P]  Sicherheits-Header (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Strict-Transport-Security`)  · files: next.config.ts  · → Technische Anforderungen (Sicherheit)
+- [x] T11 [P]  App-Rahmen-Grundlagen: Root-Layout (Deutsch, Titel „WattWann“, Inter, Toaster), Startseite als Weiterleitung, Layout der Auth-Seiten, `AuthCard`  · files: src/app/layout.tsx, src/app/page.tsx, src/app/(auth)/layout.tsx, src/components/auth/auth-card.tsx  · → AC-14
+- [x] T12 [user]  Schlüssel in `.env.local` eintragen  · where: `.env.local` → `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API Keys, secret/service_role, **ohne** `NEXT_PUBLIC_`)  · → AC-7, AC-10, AC-25
 
 ## Ebene 3 — Server Actions & Link-Endpunkt
 
