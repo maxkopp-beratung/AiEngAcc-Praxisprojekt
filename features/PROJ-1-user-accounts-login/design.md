@@ -7,11 +7,12 @@
 
 Alle Formulare, die ein Passwort oder eine E-Mail-Adresse verarbeiten, laufen über **Server Actions** auf unserem Next.js-Server. Diese rufen Supabase Auth serverseitig auf. Der Browser spricht für Login, Registrierung und Reset nie selbst mit Supabase. So bleiben Zugangsdaten aus jeder URL heraus (POST), alle Eingaben werden serverseitig geprüft, und unsere eigene Login-Sperre sitzt vor jedem Versuch.
 
-Drei Schutzschichten gegen Missbrauch:
+Zwei Schutzschichten gegen Passwort-Raten:
 
-1. **Cloudflare Turnstile**, von Supabase selbst geprüft: bei Registrierung, Login, „Passwort vergessen“ und „Link erneut senden“. Ohne gültiges Token lehnt Supabase jede dieser Anfragen ab, auch wenn jemand unsere App umgeht und Supabase direkt aufruft.
-2. **Unsere Login-Sperre** in der Datenbank: 5 Fehlversuche pro E-Mail-Adresse bzw. 20 pro IP-Adresse in 15 Minuten.
-3. **Die eingebauten Limits von Supabase**, fest pro IP-Adresse. Sie sind die Untergrenze, nicht die Lösung.
+1. **Unsere Login-Sperre** in der Datenbank: 5 Fehlversuche pro E-Mail-Adresse bzw. 20 pro IP-Adresse in 15 Minuten. Sie greift für alles, was über die Anmeldeseite von WattWann läuft.
+2. **Die eingebauten Limits von Supabase**, fest pro IP-Adresse, dazu das Mail-Limit von 30 pro Stunde. Sie gelten auch für jemanden, der Supabase direkt aufruft.
+
+**Bewusst kein CAPTCHA** (Produktentscheidung vom 2026-10-06): Wer Supabase mit dem öffentlichen Anon-Key direkt aufruft, umgeht unsere Sperre, und ein Skript kann massenhaft Konten anlegen. An Daten anderer Nutzer kommt dabei niemand, das verhindert RLS.
 
 Mails (Bestätigung, Reset) verschickt Supabase über den **SMTP-Zugang des bestehenden Postfachs `max@kopp-beratung.de`**, also als Einzelabsender ohne zusätzlichen Mail-Dienst. Der eingebaute Mailversand von Supabase stellt nur an Mitglieder des Supabase-Teams zu, und das nur 2-mal pro Stunde.
 
@@ -25,15 +26,15 @@ Root-Layout (Sprache Deutsch, Titel „WattWann“, Schrift Inter, Toaster für 
 ├── Auth-Bereich (zentrierte Karte, max. 400 px breit, kein Header)
 │   ├── /login
 │   │   ├── Hinweis-Alert „Dein Konto wurde gelöscht“ (nur nach AC-25)
-│   │   ├── Formular: E-Mail, Passwort, Turnstile-Feld, Button „Anmelden“
+│   │   ├── Formular: E-Mail, Passwort, Button „Anmelden“
 │   │   ├── Fehlerbereich: falsche Daten / Sperre mit Minuten / unbestätigt + „Link erneut senden“ / Verbindungsfehler
 │   │   └── Links: „Passwort vergessen?“, „Noch kein Konto? Registrieren“, „Datenschutz“
 │   ├── /signup
-│   │   ├── Formular: E-Mail, Passwort (Hilfetext „mind. 8 Zeichen“), Anzeigename (optional), Turnstile-Feld
+│   │   ├── Formular: E-Mail, Passwort (Hilfetext „mind. 8 Zeichen“), Anzeigename (optional)
 │   │   ├── Satz neben dem Button: „Mit der Registrierung gelten unsere Datenschutzhinweise“ (Link)
 │   │   └── Links: „Schon ein Konto? Anmelden“, „Datenschutz“
-│   ├── /signup/check-email   „Prüfe dein Postfach“ + Adresse + Button „Link erneut senden“ (60-s-Countdown) + Turnstile-Feld
-│   ├── /forgot-password      Formular: E-Mail + Turnstile-Feld → immer dieselbe neutrale Meldung
+│   ├── /signup/check-email   „Prüfe dein Postfach“ + Adresse + Button „Link erneut senden“ (60-s-Countdown)
+│   ├── /forgot-password      Formular: E-Mail → immer dieselbe neutrale Meldung
 │   ├── /reset-password       Formular: neues Passwort → speichert, weiter zu /dashboard
 │   └── /auth/link-invalid    „Dieser Link ist ungültig oder abgelaufen“ + passende Aktion (neuer Bestätigungslink bzw. neues Passwort)
 │
@@ -56,10 +57,7 @@ Root-Layout (Sprache Deutsch, Titel „WattWann“, Schrift Inter, Toaster für 
 **Wiederverwendete shadcn/ui-Komponenten:** `card`, `form`, `input`, `label`, `button`, `alert`, `dropdown-menu`, `dialog`, `alert-dialog`, `sonner`. Neue eigene Komponenten:
 - `AppHeader` (Kopfzeile mit Menü)
 - `AuthCard` (Rahmen der Auth-Seiten)
-- `TurnstileField` (Hülle um das Cloudflare-Widget, setzt sich nach jedem Absenden zurück, weil ein Token nur einmal gilt)
 - `ResendButton` (Countdown)
-
-**Turnstile-Modus „Managed“:** Es erscheint ein kleines Feld „Wird geprüft … ✓“. Eine Aufgabe zum Anklicken gibt es nur bei Verdacht.
 
 **Zustände** nach `docs/design-system.md`:
 - Buttons sind während des Sendens deaktiviert und zeigen einen Spinner (EC-1).
@@ -127,16 +125,14 @@ Supabase speichert E-Mail-Adresse, Passwort-Hash, Bestätigungs- und Login-Zeitp
   - E-Mail: Pflicht, gültiges Format, wird getrimmt und kleingeschrieben.
   - Passwort: Pflicht, 8–72 Zeichen und höchstens 72 Bytes.
   - Anzeigename: optional, getrimmt, leer → keiner, max. 50 Zeichen.
-  - Turnstile-Token: Pflicht.
 - Bei Feldfehlern: Fehler pro Feld zurück, nichts weiter (AC-2).
 - Gibt es die Adresse schon: **kein** Aufruf von Supabase, keine Mail, keine Änderung. Weiter wie bei Erfolg (AC-7).
-- Sonst: Supabase-Registrierung mit Turnstile-Token und Anzeigename als Registrierungsdaten.
+- Sonst: Supabase-Registrierung mit dem Anzeigenamen als Registrierungsdaten.
   - Antwortet Supabase mit einem Mail-Fehler: EC-4-Meldung.
-  - Antwortet Supabase mit einem Turnstile-Fehler: „Sicherheitsprüfung fehlgeschlagen, bitte erneut versuchen“. Das Widget setzt sich zurück.
 - Erfolg: Die Adresse kommt in ein kurzlebiges Cookie `pending_email` (httpOnly, 1 Stunde, SameSite=Lax), danach geht es weiter zu `/signup/check-email`. Die Adresse steht dabei **nicht** in der URL.
 
 **Bestätigungslink erneut senden** (AC-5, AC-6, EC-3)
-- Eingaben: E-Mail-Adresse und Turnstile-Token. Auf `/signup/check-email` kommt die Adresse aus dem Cookie, auf `/auth/link-invalid` aus einem Eingabefeld.
+- Eingabe: E-Mail-Adresse. Auf `/signup/check-email` kommt die Adresse aus dem Cookie, auf `/auth/link-invalid` aus einem Eingabefeld.
 - Supabase verschickt den Link neu. Den Mindestabstand von 60 Sekunden pro Adresse erzwingt Supabase selbst, die Oberfläche zeigt den Countdown.
 - **Die Antwort ist immer neutral** („Falls ein unbestätigtes Konto mit dieser Adresse existiert, haben wir dir einen neuen Link geschickt“). Einzige Ausnahmen: Supabase meldet „zu häufig“ (dann „Bitte warte noch kurz“) oder einen Mail- bzw. Verbindungsfehler (dann EC-4/EC-5).
 
@@ -144,22 +140,20 @@ Supabase speichert E-Mail-Adresse, Passwort-Hash, Bestätigungs- und Login-Zeitp
 - Eingaben:
   - E-Mail: Pflicht, normalisiert.
   - Passwort: Pflicht, max. 72 Zeichen. Keine Mindestlänge, damit die Meldung nichts über die Regeln verrät.
-  - Turnstile-Token: Pflicht.
   - `next`: optionales Rücksprungziel.
 - Ablauf:
   1. Sperrstatus abfragen. Ist die Adresse gesperrt: Meldung „Zu viele Fehlversuche. Bitte versuche es in X Minuten erneut.“ (X = Sekunden aufgerundet auf volle Minuten), **kein** Login-Versuch, kein weiterer Eintrag. Die Sperre greift für unbekannte Adressen genauso, verrät also nichts.
-  2. Supabase-Login mit Turnstile-Token.
+  2. Supabase-Login.
   3. Je nach Antwort:
      - Falsche Zugangsdaten: Fehlversuch eintragen, Meldung „E-Mail-Adresse oder Passwort ist falsch“ (AC-9).
      - Konto unbestätigt (meldet Supabase nur bei korrektem Passwort): **kein** Fehlversuch. Cookie `pending_email` setzen, Hinweis „Bitte bestätige zuerst deine E-Mail-Adresse“ mit Link zu `/signup/check-email` (AC-6).
-     - Turnstile-Fehler: Hinweis, Widget zurücksetzen, kein Fehlversuch.
      - Sonstiger Fehler: EC-5-Alert.
      - Erfolg: Weiterleitung zu `next`, wenn das ein interner Pfad ist (beginnt mit genau einem `/`, nicht mit `//` und nicht mit `/\`), sonst zu `/dashboard` (EC-12).
 - **IP-Adresse:** erster Eintrag aus `x-forwarded-for`, sonst `x-real-ip`, sonst „unknown“. Lokal laufen alle Anfragen über dieselbe Adresse und teilen sich deshalb den IP-Zähler (20 Versuche).
 
-**Passwort vergessen** (AC-19, AC-22, EC-8)
-- Eingaben: E-Mail (normalisiert) und Turnstile-Token.
-- Supabase verschickt den Reset-Link. **Die Antwort ist immer** „Falls ein Konto mit dieser Adresse existiert, haben wir dir einen Link geschickt“. Einzige Ausnahmen: Turnstile-Fehler und Verbindungsfehler.
+**Passwort vergessen** (AC-19, EC-8)
+- Eingabe: E-Mail (normalisiert).
+- Supabase verschickt den Reset-Link. **Die Antwort ist immer** „Falls ein Konto mit dieser Adresse existiert, haben wir dir einen Link geschickt“. Einzige Ausnahme: Verbindungs- oder Mailfehler (EC-4/EC-5).
 - Fordert jemand einen neuen Link an, ersetzt Supabase den alten. Damit gilt nur der zuletzt verschickte (EC-8).
 
 **Link aus der Mail prüfen** — Endpunkt `/auth/confirm` (AC-4, AC-20, AC-21, EC-2, EC-3, EC-9)
@@ -226,14 +220,12 @@ Die Content-Security-Policy kommt nicht jetzt (siehe Technische Entscheidungen).
 
 ## Dependencies
 
-- `@marsidev/react-turnstile` — fertige React-Komponente für das Cloudflare-Turnstile-Widget (Token holen, zurücksetzen, Fehler behandeln)
 - `server-only` — sorgt dafür, dass das Modul mit dem Service-Rollen-Schlüssel nie in den Browser-Code gelangt (Build bricht sonst ab)
 
 Bereits vorhanden: `@supabase/ssr`, `@supabase/supabase-js`, `zod`, `react-hook-form`, `@hookform/resolvers`, `sonner`, `lucide-react`.
 
 **Neue Umgebungsvariablen** (Platzhalter in `.env.local.example`, echte Werte trägst du selbst in `.env.local` ein):
 - `SUPABASE_SERVICE_ROLE_KEY` — nur serverseitig
-- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` — öffentlich, der Browser braucht ihn für das Widget
 
 **Projekt-Setup, das `/build` mitmacht:** `supabase init` (legt `supabase/` mit dem Migrationsordner an). `supabase login` und `supabase link` musst du selbst ausführen, siehe unten.
 
@@ -251,21 +243,19 @@ Alle Einstellungen sind `now`: Es gibt kein Deployment, das Supabase-Projekt (�
 | Link-Gültigkeit | dort → „Email OTP Expiration“ | now | 86400 Sekunden (24 h) | Bestätigungslink gilt 24 h. Den Reset-Link begrenzt die App selbst auf 1 h | AC-4, AC-20, EC-3 |
 | Mindestlänge Passwort | dort → „Minimum password length“ | now | 8, keine Pflicht-Zeichenklassen | zweite Prüfung neben der Server Action | AC-2 |
 | Leaked-Password-Schutz | Authentication → Attack Protection | — | **aus**, nur im Pro-Plan | 0-€-Budget, Entscheidung in der Spec | — |
+| CAPTCHA-Schutz | Authentication → Attack Protection → Enable Captcha protection | — | **aus** lassen | Produktentscheidung vom 2026-10-06, AC-22 entfallen | — |
 | Mail-Vorlage „Confirm signup“ | Supabase → Authentication → Emails → Templates | now | deutscher Text. Link: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup` | der Link muss auf unseren Endpunkt zeigen und auch in einem anderen Browser bzw. auf dem Handy funktionieren | AC-4 |
 | Mail-Vorlage „Reset password“ | dort | now | deutscher Text, Hinweis „gilt 1 Stunde“. Link: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery` | dto. | AC-19, AC-20 |
 | Site-URL und erlaubte Weiterleitungen | Supabase → Authentication → URL Configuration | now | Site URL `http://localhost:3000`, Redirect URLs `http://localhost:3000/**` | Links in den Mails zeigen auf die lokal laufende App | AC-4, AC-20 |
-| Turnstile-Widget anlegen | Cloudflare-Dashboard → Turnstile → Add widget | now | Modus „Managed“, Hostname `localhost` hinzufügen | echte Prüfung auch lokal. Den Site Key trägst du in `.env.local` ein | AC-22 |
-| CAPTCHA in Supabase einschalten | Supabase → Authentication → Attack Protection → Enable Captcha protection | now | Anbieter Turnstile, Secret Key aus Cloudflare | Supabase lehnt Registrierung, Login, Reset und Neuversand ohne gültiges Token ab, auch bei direkten Aufrufen | AC-22, AC-10 |
-| Schlüssel in `.env.local` | `.env.local` (trägst du selbst ein) | now | `SUPABASE_SERVICE_ROLE_KEY` aus Supabase → Project Settings → API Keys (secret/service_role), `NEXT_PUBLIC_TURNSTILE_SITE_KEY` aus Cloudflare | Server-Funktionen und Widget | AC-10, AC-22, AC-25 |
-| AVV / DPA abschließen | Supabase → Organization Settings → Legal Documents · Google Workspace → Admin-Konsole → Konto → Rechtliches und Compliance · Cloudflare → DPA (Self-Serve Subscription Agreement) | now | — | Auftragsverarbeitung nach Art. 28 DSGVO, siehe `docs/privacy.md` | AC-26 |
+| Schlüssel in `.env.local` | `.env.local` (trägst du selbst ein) | now | `SUPABASE_SERVICE_ROLE_KEY` aus Supabase → Project Settings → API Keys (secret/service_role), **ohne** `NEXT_PUBLIC_`-Präfix | Sperre, Existenz-Prüfung, Konto löschen | AC-7, AC-10, AC-25 |
+| AVV / DPA abschließen | Supabase → Organization Settings → Legal Documents · Google Workspace → Admin-Konsole → Konto → Rechtliches und Compliance | now | — | Auftragsverarbeitung nach Art. 28 DSGVO, siehe `docs/privacy.md` | AC-26 |
 
 ## Technical Decisions
 
 | Decision | Rationale | Alternative considered | Trade-off | Date |
 | --- | --- | --- | --- | --- |
 | Alle Auth-Formulare über Server Actions, die Supabase serverseitig aufrufen | POST statt GET, Eingaben serverseitig geprüft, unsere Sperre sitzt vor jedem Login (Stack-Pack: „The login and signup flow“) | Browser ruft Supabase direkt auf | etwas mehr Code pro Formular | 2026-10-06 |
-| Cloudflare Turnstile, von **Supabase** geprüft, für Registrierung, Login, Reset und Neuversand | Der Anon-Key ist öffentlich. Nur eine Prüfung bei Supabase selbst stoppt Skripte, die unsere App umgehen. Supabase prüft dann für alle diese Endpunkte | CAPTCHA nur in unserer App (umgehbar); hCaptcha (setzt mehr Tracking ein) | beim Login erscheint ein kleines Prüffeld. Weicht von der Produktentscheidung „kein CAPTCHA beim Login“ ab → `/refine PROJ-1`, vom Nutzer freigegeben | 2026-10-06 |
-| Turnstile-Modus „Managed“ mit echtem Schlüssel und Hostname `localhost` | Nutzer sehen meist nur „✓“, bei Verdacht eine Aufgabe. Echte Schlüssel prüfen wirklich | Modus „Invisible“ (scheitert bei Verdacht ohne Ausweg); Cloudflare-Testschlüssel (prüfen nichts) | für automatisierte Tests in `/qa` müssen eventuell vorübergehend die Testschlüssel rein | 2026-10-06 |
+| ~~Cloudflare Turnstile, von **Supabase** geprüft, für Registrierung, Login, Reset und Neuversand~~ (ersetzt am 2026-10-06, siehe unten) | Der Anon-Key ist öffentlich. Nur eine Prüfung bei Supabase selbst stoppt Skripte, die unsere App umgehen. Supabase prüft dann für alle diese Endpunkte | CAPTCHA nur in unserer App (umgehbar); hCaptcha (setzt mehr Tracking ein) | beim Login erscheint ein kleines Prüffeld. Weicht von der Produktentscheidung „kein CAPTCHA beim Login“ ab → `/refine PROJ-1`, vom Nutzer freigegeben | 2026-10-06 |
 | Login-Sperre als Tabelle in Supabase-Postgres, nur über Funktionen für die Service-Rolle | Kein weiterer Dienst, kein weiterer Auftragsverarbeiter, die Datenbank ist schon da. Zählt pro E-Mail **und** pro IP (Security-Regeln) | Upstash Redis (Stack-Pack-Standard: zusätzliches Konto, zusätzlicher Auftragsverarbeiter, US-Firma) | etwas mehr Datenbanklast pro Login, bei der Nutzerzahl unerheblich | 2026-10-06 |
 | Nur **Fehlversuche** zählen, Prüfung **vor** dem Versuch | So steht es in AC-10/AC-11. Ein gesperrter Versuch wird gar nicht erst geprüft und verlängert die Sperre nicht | jeden Versuch zählen | wer trifft, bevor das Limit erreicht ist, wird nicht gezählt. Das ist beabsichtigt | 2026-10-06 |
 | Gleitendes 15-Minuten-Fenster | „frei in X Minuten“ ist dann exakt berechenbar und für Nutzer nachvollziehbar | feste Zeitblöcke | — | 2026-10-06 |
@@ -282,14 +272,15 @@ Alle Einstellungen sind `now`: Es gibt kein Deployment, das Supabase-Projekt (�
 | Profile per Datenbank-Trigger statt in der Server Action anlegen | Genau ein Profil pro Konto, auch wenn die Action nach der Registrierung abbricht (AC-3) | Profil in der Server Action anlegen | Logik in SQL statt TypeScript | 2026-10-06 |
 | Profil-Änderung nur für die Spalte `display_name` freigegeben | Der Nutzer kann weder `id` noch Zeitstempel manipulieren, zusätzlich zu RLS | ganze Zeile änderbar | — | 2026-10-06 |
 | Auth-Einstellungen im Dashboard statt per `supabase config push` | `config push` überschreibt **alle** Auth-Einstellungen des einzigen (Live-)Projekts mit der lokalen Datei, und die Geheimnisse müssten in eine weitere lokale Datei | `config push` (Einstellungen als Code) | Einstellungen sind nicht versioniert. Die Tabelle oben ist ihre Dokumentation | 2026-10-06 |
-| Vier Sicherheits-Header jetzt, Content-Security-Policy später | Die Header sind trivial und Pflicht laut Security-Regeln. CSP braucht Nonces, Tests und eine Freigabe für Turnstile | CSP sofort | eine CSP als zusätzlicher XSS-Schutz fehlt vorerst → `docs/tech-debt.md` | 2026-10-06 |
+| Kein CAPTCHA, Schutz nur durch eigene Login-Sperre und Supabase-Limits (ersetzt die Turnstile-Entscheidung) | Produktentscheidung vom 2026-10-06 (AC-22 entfallen): Aufwand steht für ein reines Prüfprojekt in keinem Verhältnis. Ohne CAPTCHA entfallen ein Dienst, zwei Einstellungen, ein Schlüssel und ein Auftragsverarbeiter | Turnstile, von Supabase geprüft | Direkte Aufrufe an Supabase umgehen unsere Sperre, Massenregistrierung ist möglich. Begrenzt nur durch die festen Supabase-Limits pro IP und 30 Mails pro Stunde. RLS schützt die Daten unverändert | 2026-10-06 |
+| Vier Sicherheits-Header jetzt, Content-Security-Policy später | Die Header sind trivial und Pflicht laut Security-Regeln. CSP braucht Nonces und Tests | CSP sofort | eine CSP als zusätzlicher XSS-Schutz fehlt vorerst → `docs/tech-debt.md` | 2026-10-06 |
 
-## Abweichungen von der Spec (per `/refine PROJ-1` am 2026-10-06 in die Spec übernommen: AC-22, EC-2)
+## Abweichungen von der Spec (per `/refine PROJ-1` am 2026-10-06 in die Spec übernommen: EC-2)
 
-1. **CAPTCHA auch beim Login und beim Neuversand.** Die Produktentscheidung „kein CAPTCHA beim Login“ und AC-22 werden angepasst.
+1. ~~CAPTCHA auch beim Login und beim Neuversand~~: durch die spätere Entscheidung „kein CAPTCHA“ hinfällig, AC-22 ist entfallen.
 2. **EC-2:** Ein schon benutzter Bestätigungslink führt zur Seite „ungültig oder abgelaufen“, mit dem Hinweis „schon bestätigt? Dann melde dich an“. Die Spec sagt bisher „/login mit Hinweis ‚bereits bestätigt‘“. Supabase kann „benutzt“ und „abgelaufen“ nicht unterscheiden.
 
 ## Open Questions
 
 - [x] Bei welchem Anbieter liegt das Postfach `max@kopp-beratung.de`? → Google Workspace, als Auftragsverarbeiter in `docs/privacy.md` eingetragen (2026-10-06)
-- [ ] Automatisierte Tests in `/qa` mit echtem Turnstile: Falls das Widget dort eine Aufgabe zeigt, werden für den Testlauf vorübergehend die Cloudflare-Testschlüssel eingesetzt. Das entscheidet `/qa`.
+- [x] Automatisierte Tests in `/qa` mit echtem Turnstile? → Hinfällig, kein CAPTCHA mehr (2026-10-06)
