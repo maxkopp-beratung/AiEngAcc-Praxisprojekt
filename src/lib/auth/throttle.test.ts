@@ -6,7 +6,7 @@ vi.mock('next/headers', () => ({ headers: vi.fn() }))
 const rpc = vi.fn()
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ rpc }) }))
 
-import { getLoginThrottle, recordLoginFailure, toRetryMinutes } from './throttle'
+import { beginLoginAttempt, releaseLoginAttempt, toRetryMinutes } from './throttle'
 import { clientIpFrom } from './request-meta'
 
 const hash = (v: string) => createHash('sha256').update(v).digest('hex')
@@ -23,11 +23,11 @@ describe('toRetryMinutes', () => {
   })
 })
 
-describe('getLoginThrottle', () => {
+describe('beginLoginAttempt', () => {
   it('sends only hashes of email and IP to the database', async () => {
-    rpc.mockResolvedValue({ data: [{ blocked: false, retry_after_seconds: 0 }], error: null })
-    await getLoginThrottle('max@example.de', '203.0.113.7')
-    expect(rpc).toHaveBeenCalledWith('login_throttle_status', {
+    rpc.mockResolvedValue({ data: [{ blocked: false, retry_after_seconds: 0, attempt_id: 7 }], error: null })
+    await beginLoginAttempt('max@example.de', '203.0.113.7')
+    expect(rpc).toHaveBeenCalledWith('begin_login_attempt', {
       p_email_hash: hash('max@example.de'),
       p_ip_hash: hash('203.0.113.7'),
     })
@@ -36,38 +36,37 @@ describe('getLoginThrottle', () => {
     expect(args).not.toContain('203.0.113.7')
   })
 
-  it('reports not blocked', async () => {
-    rpc.mockResolvedValue({ data: [{ blocked: false, retry_after_seconds: 0 }], error: null })
-    await expect(getLoginThrottle('a@b.de', '1.1.1.1')).resolves.toEqual({ blocked: false })
+  it('returns the reservation when not blocked', async () => {
+    rpc.mockResolvedValue({ data: [{ blocked: false, retry_after_seconds: 0, attempt_id: 7 }], error: null })
+    await expect(beginLoginAttempt('a@b.de', '1.1.1.1')).resolves.toEqual({ blocked: false, attemptId: 7 })
   })
 
   it('reports blocked with the wait time in minutes (AC-10)', async () => {
-    rpc.mockResolvedValue({ data: [{ blocked: true, retry_after_seconds: 541 }], error: null })
-    await expect(getLoginThrottle('a@b.de', '1.1.1.1')).resolves.toEqual({
+    rpc.mockResolvedValue({ data: [{ blocked: true, retry_after_seconds: 541, attempt_id: null }], error: null })
+    await expect(beginLoginAttempt('a@b.de', '1.1.1.1')).resolves.toEqual({
       blocked: true,
       retryAfterMinutes: 10,
     })
   })
 
-  it('fails closed when the database call fails', async () => {
+  it('fails closed when the database call fails or returns nothing', async () => {
     rpc.mockResolvedValue({ data: null, error: { message: 'boom' } })
-    await expect(getLoginThrottle('a@b.de', '1.1.1.1')).rejects.toThrow('login_throttle_status')
+    await expect(beginLoginAttempt('a@b.de', '1.1.1.1')).rejects.toThrow('begin_login_attempt')
+    rpc.mockResolvedValue({ data: [], error: null })
+    await expect(beginLoginAttempt('a@b.de', '1.1.1.1')).rejects.toThrow('begin_login_attempt')
   })
 })
 
-describe('recordLoginFailure', () => {
-  it('records hashes only', async () => {
+describe('releaseLoginAttempt', () => {
+  it('releases the reservation by id', async () => {
     rpc.mockResolvedValue({ data: null, error: null })
-    await recordLoginFailure('a@b.de', '1.1.1.1')
-    expect(rpc).toHaveBeenCalledWith('record_login_failure', {
-      p_email_hash: hash('a@b.de'),
-      p_ip_hash: hash('1.1.1.1'),
-    })
+    await releaseLoginAttempt(7)
+    expect(rpc).toHaveBeenCalledWith('release_login_attempt', { p_attempt_id: 7 })
   })
 
-  it('throws when the insert fails', async () => {
+  it('throws when the delete fails', async () => {
     rpc.mockResolvedValue({ data: null, error: { message: 'boom' } })
-    await expect(recordLoginFailure('a@b.de', '1.1.1.1')).rejects.toThrow('record_login_failure')
+    await expect(releaseLoginAttempt(7)).rejects.toThrow('release_login_attempt')
   })
 })
 
