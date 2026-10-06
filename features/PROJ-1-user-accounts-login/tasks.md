@@ -49,7 +49,7 @@
 - [x] T29 [P]  Seiten `/forgot-password`, `/reset-password` und `/auth/link-invalid` (je nach `typ` Aktion „Neuer Bestätigungslink“ mit E-Mail oder „Neues Passwort anfordern“, dazu „Anmelden“)  · files: src/app/(auth)/forgot-password/page.tsx, src/app/(auth)/reset-password/page.tsx, src/app/(auth)/auth/link-invalid/page.tsx, src/components/auth/password-forms.tsx, src/components/auth/resend-form.tsx  · → AC-19, AC-20, AC-21, EC-2, EC-3, EC-5
 - [x] T30 [P]  Dashboard-Rahmen: geschütztes Layout (Nutzer beim Auth-Server prüfen, ohne Cache), Seite „Übersicht“ mit Toast nach Passwortänderung, `AppHeader` mit Menü, Dialoge „Anzeigename ändern“ und „Konto löschen“  · files: src/app/dashboard/layout.tsx, src/app/dashboard/page.tsx, src/components/app-header.tsx, src/components/account-dialogs.tsx  · → AC-16, AC-17, AC-18, AC-20, AC-25, EC-6, EC-10, EC-13
 - [x] T31 [P]  Seite `/datenschutz` (öffentlich): Verantwortlicher, Kontakt max@kopp-beratung.de, Daten und Zwecke, Speicherdauer, Dienste mit Region (Supabase Frankfurt, Google Workspace), Rechte, Antwort innerhalb eines Monats; Inhalt aus `docs/privacy.md`  · files: src/app/datenschutz/page.tsx  · → AC-26
-- [ ] T32 [user]  Auftragsverarbeitungsverträge abschließen bzw. prüfen  · where: Supabase → Organization Settings → Legal Documents · Google-Admin-Konsole → Konto → Rechtliches und Compliance  · → AC-26
+- [x] T32 [user]  Auftragsverarbeitungsverträge abschließen bzw. prüfen  · where: Supabase → Organization Settings → Legal Documents · Google-Admin-Konsole → Konto → Rechtliches und Compliance  · → AC-26
 
 ## Ebene 5 — Prüfung der Datentrennung
 

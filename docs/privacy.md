@@ -32,8 +32,8 @@
 
 | Dienst | Was er verarbeitet | Region | AVV unterzeichnet | Außerhalb angemessener Länder? |
 |--------|--------------------|--------|-------------------|--------------------------------|
-| Supabase (Auth, Postgres) | alle Kontodaten, Sitzungen, Auth-Protokolle mit IP-Adressen, Hashes fehlgeschlagener Login-Versuche | eu-central-1 (Frankfurt) | ☐ | Supabase Inc. ist ein US-Unternehmen, die Daten liegen in der EU. Übermittlungsweg: EU-US Data Privacy Framework oder Standardvertragsklauseln, laut AVV zu prüfen |
-| Google Workspace (Postfach `max@kopp-beratung.de`, SMTP-Versand der Bestätigungs- und Reset-Mails) | E-Mail-Adresse der Empfänger, Inhalt der Mail mit dem Link; Kopien liegen im Ordner „Gesendet“ des Postfachs | _noch nicht ermittelt_ (Datenregionen gibt es nur in bestimmten Workspace-Editionen) | ☐ | Vertragspartner für EU-Kunden ist Google Cloud EMEA Ltd. (Irland), Mutterkonzern Google LLC ist ein US-Unternehmen. Übermittlungsweg: EU-US Data Privacy Framework, laut AVV zu prüfen |
+| Supabase (Auth, Postgres) | alle Kontodaten, Sitzungen, Auth-Protokolle mit IP-Adressen, Hashes fehlgeschlagener Login-Versuche | eu-central-1 (Frankfurt) | ☑ automatisch Teil der Nutzungsbedingungen (DPA Version 1, 2026-08-01, supabase.com/legal/customer-resources/data-processing-addendum) | Vertragspartner ist Supabase Pte. Ltd. (Singapur), die Daten liegen in Frankfurt. Für Zugriffe aus Drittländern gelten die im DPA enthaltenen EU-Standardvertragsklauseln |
+| Google Workspace (Postfach `max@kopp-beratung.de`, SMTP-Versand der Bestätigungs- und Reset-Mails) | E-Mail-Adresse der Empfänger, Inhalt der Mail mit dem Link; Kopien liegen im Ordner „Gesendet“ des Postfachs | _noch nicht ermittelt_ (Datenregionen gibt es nur in bestimmten Workspace-Editionen) | ☑ Zusatz zur Verarbeitung von Cloud-Daten in der Admin-Konsole akzeptiert (2026-10-06) | Vertragspartner für EU-Kunden ist Google Cloud EMEA Ltd. (Irland), Mutterkonzern Google LLC ist ein US-Unternehmen. Übermittlungsweg: EU-US Data Privacy Framework, laut AVV zu prüfen |
 
 Kein Hosting-Anbieter (kein Deployment), kein Error-Tracking, keine Analytics.
 
@@ -51,8 +51,8 @@ Kein Hosting-Anbieter (kein Deployment), kein Error-Tracking, keine Analytics.
 
 ## Offene Punkte
 
-- [ ] AVV mit Supabase abschließen (Organisationseinstellungen im Supabase-Dashboard).
-- [ ] AVV mit Google Workspace prüfen: Admin-Konsole → Konto → Rechtliches und Compliance → Zusatz zur Verarbeitung von Cloud-Daten akzeptiert?
+- [x] AVV mit Supabase: Der DPA ergänzt die Supabase-Nutzungsbedingungen und gilt ohne eigene Unterschrift (geprüft 2026-10-06). Empfehlung: eine PDF-Kopie der DPA-Seite zu den eigenen Unterlagen legen.
+- [x] AVV mit Google Workspace: Zusatz zur Verarbeitung von Cloud-Daten akzeptiert (2026-10-06).
 - [ ] Aufbewahrung der gesendeten Bestätigungs- und Reset-Mails im Ordner „Gesendet“ festlegen (z. B. regelmäßig löschen), sonst liegen dort Empfängeradressen unbegrenzt.
 - [ ] Speicherdauer der Supabase-Auth-Protokolle (`auth.audit_log_entries`, enthalten IP-Adressen) ermitteln, im Free Plan _noch nicht ermittelt_.
 

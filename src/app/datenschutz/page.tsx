@@ -73,7 +73,8 @@ export default function DatenschutzPage() {
           <ul>
             <li>
               <strong>Supabase</strong> (Datenbank und Anmeldung), Server in Frankfurt am Main (Region
-              eu-central-1). Supabase Inc. ist ein US-Unternehmen; die Daten liegen in der EU.
+              eu-central-1). Vertragspartner ist Supabase Pte. Ltd. (Singapur); für Zugriffe aus Ländern
+              außerhalb der EU gelten EU-Standardvertragsklauseln.
             </li>
             <li>
               <strong>Google Workspace</strong> (Versand der Bestätigungs- und Passwort-Mails über das Postfach
