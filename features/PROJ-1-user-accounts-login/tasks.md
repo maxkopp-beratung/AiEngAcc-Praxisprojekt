@@ -53,7 +53,7 @@
 
 ## Ebene 5 — Prüfung der Datentrennung
 
-- [ ] T33  Integrationstest gegen die echte Datenbank: Zwei Testkonten (per Admin-Client bestätigt angelegt und danach gelöscht). A kann das Profil von B weder lesen noch ändern, `anon` bekommt keine Profile, `anon`/`authenticated` können `private.login_failures` und die Sperr-Funktionen nicht aufrufen  · files: src/lib/supabase/rls.integration.test.ts  · → AC-23, AC-24, AC-10
+- [x] T33  Integrationstest gegen die echte Datenbank: Zwei Testkonten (per Admin-Client bestätigt angelegt und danach gelöscht). A kann das Profil von B weder lesen noch ändern, `anon` bekommt keine Profile, `anon`/`authenticated` können `private.login_failures` und die Sperr-Funktionen nicht aufrufen  · files: src/lib/supabase/rls.integration.test.ts  · → AC-23, AC-24, AC-10
 
 ## Parallelisierung
 
