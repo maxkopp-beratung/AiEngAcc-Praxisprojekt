@@ -1,24 +1,43 @@
-# Product Requirements Document
+# Product Requirements Document – WattWann
 
 ## Vision
-_Describe what you are building and why._
+WattWann zeigt Haushalten mit dynamischem Stromtarif auf einen Blick, wann Strom heute und morgen am günstigsten ist. Für jedes gespeicherte Gerät (Waschmaschine, Spülmaschine, E-Auto) empfiehlt die App das günstigste Startfenster. So wird ein Börsenpreis-Chart zu einer konkreten Handlungsempfehlung: „Starte um 13:15 Uhr.“
 
-## Target Users
-_Who will use this product? Describe their needs and pain points._
+## Zielgruppe
+Privathaushalte mit dynamischem Stromtarif oder allgemeinem Interesse an Strompreisen, ohne Fachwissen. Ihr Problem: Der Preis schwankt über den Tag stark. Rohe Börsendaten in EUR/MWh und im 15-Minuten-Raster sind aber für Laien nicht lesbar, und auszurechnen, wann eine 2,5-Stunden-Wäsche am günstigsten läuft, ist im Kopf nicht machbar.
 
-## Core Features (Roadmap)
+## Kernfunktionen (Roadmap)
 
-_The feature map — every feature's name, one-line description, status and the build order — lives in **`features/INDEX.md`** and only there, so nothing has to be kept in sync. Here, in two or three sentences: what the MVP must do for the product to be usable at all, and what deliberately comes later._
+Für das MVP braucht es drei Dinge:
+- ein Konto mit Login, damit die eigenen Geräte gespeichert bleiben
+- die aktuellen Day-ahead-Preise für heute und morgen
+- pro Gerät eine Empfehlung für das günstigste zusammenhängende Startfenster, verglichen mit „sofort starten“
 
-## Success Metrics
-_How will you measure success? (e.g., user signups, retention, task completion rate)_
+Alles darüber hinaus (Benachrichtigungen, Endkundenpreise, Smart-Home) kommt bewusst später oder nie. Die Feature-Liste steht in `features/INDEX.md`.
 
-## Constraints
-_Budget, timeline, technical limitations, team size._
+## Erfolgskriterien
+- Eine neue Person schafft es ohne Erklärung in unter 2 Minuten, sich zu registrieren, ein Gerät anzulegen und dessen empfohlenes Startfenster zu sehen.
+- Die Empfehlung ist nachweislich richtig: Automatisierte Tests bestätigen das günstigste zusammenhängende Fenster, auch in Randfällen (Zeitumstellung, fehlende Preise für morgen, Laufzeit länger als der verfügbare Zeitraum).
+- Die angezeigten Preise stimmen mit der Energy-Charts-Quelle überein.
 
-## Non-Goals
-_What are you explicitly NOT building in this version?_
+## Rahmenbedingungen
+- **Kontext:** Praxisprojekt im AI Engineering Accelerator. Jedes Feature durchläuft den kompletten Kit-Workflow (`/write-spec` → `/architecture` → `/tasks` → `/build` → `/qa`). Der Git-Verlauf muss diese Reihenfolge zeigen, und am Ende stehen alle Features auf „Approved“.
+- **Team & Budget:** Solo mit Claude Code, 0 €. Nur Free-Tarife und öffentliche APIs ohne Schlüssel.
+- **Zeitrahmen:** kein fester Abgabetermin.
+- **Stack:** Next.js (App Router) + TypeScript, Tailwind + shadcn/ui, Supabase (Free Plan) über `@supabase/ssr`, Energy-Charts API (ohne Key).
+- Backend: Supabase Cloud (Auth + Postgres + RLS)
+- Environment strategy: single
+- Hosting: kein Deployment. Die App läuft lokal (`npm run dev`), die Datenbank in Supabase Cloud.
+- Data region: eu-central-1 (Frankfurt)
+- **Supabase-Projekt:** „Automatically expose new tables“ ist aus, „automatic RLS“ ist an. Neue Tabellen sind also nicht automatisch über die Data API erreichbar: Jede Migration aktiviert RLS ausdrücklich und vergibt die nötigen Rechte per `GRANT` (z. B. an `authenticated`), sonst schlagen Zugriffe mit „permission denied“ fehl.
+- Data protection law: GDPR (EU/DE)
+- Data protection stance: lean
+- Design system: see `docs/design-system.md`
+- **Keine Secrets im Repository:** Schlüssel nur in `.env.local`, die Git ignoriert.
 
----
-
-Run `/init` to set up this PRD and feature map, then `/write-spec` to create detailed feature specifications for each feature in `features/INDEX.md`.
+## Nicht-Ziele
+- Netzentgelte, Steuern und Umlagen: kein echter Endkundenpreis, nur der reine Börsenpreis
+- Push-Benachrichtigungen
+- Smart-Home-Steuerung
+- Anbindung an einen echten Stromtarif
+- Deployment auf einen Webserver
