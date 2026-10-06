@@ -9,8 +9,8 @@
 
 ## Ebene 1 — Pakete & Typen
 
-- [ ] T1 [P]  shadcn-Komponente `chart` hinzufügen (`npx shadcn@latest add chart`, bringt `recharts`), `date-fns` und `@date-fns/tz` installieren  · files: package.json, package-lock.json, src/components/ui/chart.tsx  · → AC-3, AC-18
-- [ ] T2 [P]  Gemeinsame Typen: Preis-Paket (`generatedAt`, `today`, `tomorrow`), Tagespaket (`date`, `status` = `ok` | `not_published` | `error`, `slots` nur bei `ok`), Slot (`start` als UTC-ISO, `priceEurMwh` Zahl oder `null`), Stufe (`cheap` | `mid` | `expensive`)  · files: src/lib/prices/types.ts  · → AC-12, AC-13, EC-4, EC-5
+- [x] T1 [P]  shadcn-Komponente `chart` hinzufügen (`npx shadcn@latest add chart`, bringt `recharts`), `date-fns` und `@date-fns/tz` installieren  · files: package.json, package-lock.json, src/components/ui/chart.tsx  · → AC-3, AC-18
+- [x] T2 [P]  Gemeinsame Typen: Preis-Paket (`generatedAt`, `today`, `tomorrow`), Tagespaket (`date`, `status` = `ok` | `not_published` | `error`, `slots` nur bei `ok`), Slot (`start` als UTC-ISO, `priceEurMwh` Zahl oder `null`), Stufe (`cheap` | `mid` | `expensive`)  · files: src/lib/prices/types.ts  · → AC-12, AC-13, EC-4, EC-5
 
 ## Ebene 2 — Bausteine ohne Seiteneffekte
 
