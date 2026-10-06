@@ -284,3 +284,22 @@ Alle Einstellungen sind `now`: Es gibt kein Deployment, das Supabase-Projekt (�
 
 - [x] Bei welchem Anbieter liegt das Postfach `max@kopp-beratung.de`? → Google Workspace, als Auftragsverarbeiter in `docs/privacy.md` eingetragen (2026-10-06)
 - [x] Automatisierte Tests in `/qa` mit echtem Turnstile? → Hinfällig, kein CAPTCHA mehr (2026-10-06)
+
+## Umsetzungsnotizen (`/build`, 2026-10-06)
+
+Abweichungen und Ergänzungen gegenüber dem Design oben, damit `/qa` und spätere Features wissen, was tatsächlich gebaut ist:
+
+- **Reset-Sitzung per Cookie:** Eine Sitzung aus einem Reset-Link lässt sich am Token nicht von einer normalen unterscheiden (`amr` ist in beiden Fällen `otp`, per Probe geprüft). `/auth/confirm` setzt deshalb nach einem gültigen Reset-Link das httpOnly-Cookie `password_reset` (an die Nutzer-ID gebunden, 1 Stunde). `/reset-password` und die Action „Neues Passwort setzen“ verlangen es, ohne Cookie geht es zu `/auth/link-invalid?typ=reset`. Sonst könnte jeder Angemeldete dort ohne altes Passwort ein neues setzen. Datei: `src/lib/auth/reset-cookie.ts`.
+- **`recovery_sent_at` bleibt nach dem Einlösen erhalten** (per Probe geprüft). Die 1-Stunden-Grenze für Reset-Links funktioniert damit wie geplant.
+- **Ungültiger Reset-Link bei angemeldetem Nutzer** führt zu `/auth/link-invalid?typ=reset`, nicht zu `/dashboard`. Die Weiterleitung aufs Dashboard (EC-2) gilt nur für Bestätigungslinks, sonst wäre AC-21 für Angemeldete unsichtbar.
+- **Zusätzliche Dateien:**
+  - `src/lib/auth/action-state.ts` (gemeinsames Ergebnis-Format und Meldungstexte aller Actions)
+  - `src/components/auth/form-parts.tsx` (Feld, Hinweis-Alert, Senden-Button mit Ladezustand)
+  - `src/app/icon.svg` (App-Icon)
+  - `supabase/templates/*.html` (deutsche Mail-Vorlagen zum Einfügen in Supabase, T24/T25)
+- **Design-System angewendet:** Die Tokens aus `docs/design-system.md` stehen jetzt in `src/app/globals.css` (hell und dunkel). Das Theme folgt dem Betriebssystem über `next-themes`. Der primäre Button nutzt `primary-hover`/`primary-active`.
+- **Formulare:** Server Actions mit `useActionState`. Die Prüfung läuft serverseitig mit Zod, Feldfehler kommen vom Server zurück. Auf `react-hook-form` wurde verzichtet, eine zweite Validierung im Browser bringt hier keinen Mehrwert.
+- **Service-Rolle ohne Rechte auf `profiles`:** Sie braucht dort keine, das Löschen läuft über die Kaskade von `auth.users`. Das ist das Prinzip der geringsten Rechte.
+- **Neuversand und Mail-Limit:** Meldet Supabase beim Neuversand „zu häufig“, erscheint „Bitte warte noch kurz“. Beim Passwort-Reset bleibt die Antwort auch dann neutral, weil eine abweichende Antwort dort verraten würde, dass die Adresse ein Konto hat.
+- **Integrationstest gegen das echte Projekt:** `src/lib/supabase/rls.integration.test.ts` liest `.env.local` selbst ein (Next.js lädt sie im Testmodus nicht). Er legt zwei Wegwerf-Konten an und löscht sie wieder. Ohne Schlüssel wird er übersprungen.
+- **Beobachtung für `/qa`:** Im ersten Browser-Durchlauf meldete der allererste Login-Versuch „Verbindungsproblem“. Danach und nach einem Kaltstart des Servers ließ sich das nicht reproduzieren. Vermutlich war es eine einmalige Netzwerkstörung zu Supabase. Die App reagiert darauf wie vorgesehen: Sie blockiert und zeigt eine verständliche Meldung.

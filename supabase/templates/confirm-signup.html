@@ -1,0 +1,7 @@
+<!-- Supabase → Authentication → Emails → Templates → "Confirm signup"
+     Betreff: Bestätige deine E-Mail-Adresse für WattWann -->
+<h2>Willkommen bei WattWann</h2>
+<p>Bitte bestätige deine E-Mail-Adresse, damit du WattWann nutzen kannst:</p>
+<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup">E-Mail-Adresse bestätigen</a></p>
+<p>Der Link gilt 24 Stunden.</p>
+<p>Du hast dich nicht bei WattWann registriert? Dann kannst du diese Mail einfach ignorieren. Unbestätigte Konten werden nach 7 Tagen automatisch gelöscht.</p>
