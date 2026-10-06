@@ -13,7 +13,7 @@
 - [ ] T2 [P]  Migration `profiles`: Tabelle, Prüfregel für `display_name` (1–50, getrimmt), Kaskade auf `auth.users`, Trigger „Profil bei Registrierung anlegen“, Trigger für `updated_at`, RLS an, nur eigenes Profil lesen und nur `display_name` ändern, `GRANT`s für `authenticated`, keine Rechte für `anon`  · files: supabase/migrations/20261006000001_profiles.sql  · → AC-3, AC-18, AC-23, AC-24, EC-10, EC-11
 - [ ] T3 [P]  Migration Login-Sperre: Schema `private`, Tabelle `private.login_failures` mit beiden Indizes, Funktionen „Sperrstatus abfragen“ (5 pro E-Mail / 20 pro IP in 15 Min., „frei in N Sekunden“), „Fehlversuch eintragen“ (räumt dabei ab) und „Adresse existiert?“, `EXECUTE` nur für `service_role`  · files: supabase/migrations/20261006000002_login_throttle.sql  · → AC-7, AC-10, AC-11
 - [ ] T4 [P]  Migration Aufräum-Job: `pg_cron` aktivieren, stündlicher Job löscht unbestätigte Auth-Nutzer älter als 7 Tage und `login_failures` älter als 15 Min.  · files: supabase/migrations/20261006000003_cleanup_job.sql  · → AC-27
-- [ ] T5 [user]  Supabase-CLI anmelden und Projekt verknüpfen  · where: Terminal im Projektordner: `supabase login`, dann `supabase link --project-ref <ref>` (Ref aus der Dashboard-URL, fragt nach dem Datenbank-Passwort)  · → AC-3, AC-23, AC-24, AC-27
+- [x] T5 [user]  Supabase-CLI anmelden und Projekt verknüpfen  · where: Terminal im Projektordner: `supabase login`, dann `supabase link --project-ref <ref>` (Ref aus der Dashboard-URL, fragt nach dem Datenbank-Passwort)  · → AC-3, AC-23, AC-24, AC-27
 
 ## Ebene 2 — Server-Grundlagen & gemeinsame Bausteine
 

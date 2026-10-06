@@ -22,7 +22,7 @@
 | Zweck | Daten | Von wem | Rechtsgrundlage | Speicherdauer | Beteiligte Auftragsverarbeiter |
 |-------|-------|---------|-----------------|---------------|--------------------------------|
 | Benutzerkonten betreiben (Registrierung, Login, Bestätigungs- und Reset-Mails) – PROJ-1 | E-Mail-Adresse, Passwort-Hash, optionaler Anzeigename, Zeitpunkte von Registrierung, Bestätigung und letztem Login, Sitzungs-Token | registrierte Nutzer | Art. 6 Abs. 1 lit. b DSGVO (Vertrag: Ohne Konto kann die App die eigenen Geräte nicht speichern) | bis zur Kontolöschung durch den Nutzer; unbestätigte Konten werden nach 7 Tagen automatisch gelöscht | Supabase, Google Workspace (Mailversand) |
-| Login und Formulare vor Missbrauch schützen (Sperre nach Fehlversuchen, CAPTCHA) – PROJ-1 | E-Mail-Adresse und IP-Adresse in Zählern für Fehlversuche; IP-Adresse und Browsermerkmale beim CAPTCHA | alle, die die Login-, Registrierungs- oder Reset-Formulare nutzen | Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse: Schutz der Konten vor Passwort-Raten und Massenregistrierung) | Fehlversuch-Zähler (nur als SHA-256-Hashes von E-Mail und IP) höchstens 15 Minuten; beim CAPTCHA nach den Regeln von Cloudflare, _noch nicht ermittelt_ | Supabase, Cloudflare (Turnstile) |
+| Login vor Passwort-Raten schützen (Sperre nach Fehlversuchen) – PROJ-1 | E-Mail-Adresse und IP-Adresse, nur als SHA-256-Hashes in Zählern für Fehlversuche | alle, die sich anmelden wollen | Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse: Schutz der Konten vor Passwort-Raten) | höchstens 15 Minuten | Supabase |
 
 ## Besondere Kategorien
 
@@ -33,7 +33,6 @@
 | Dienst | Was er verarbeitet | Region | AVV unterzeichnet | Außerhalb angemessener Länder? |
 |--------|--------------------|--------|-------------------|--------------------------------|
 | Supabase (Auth, Postgres) | alle Kontodaten, Sitzungen, Auth-Protokolle mit IP-Adressen, Hashes fehlgeschlagener Login-Versuche | eu-central-1 (Frankfurt) | ☐ | Supabase Inc. ist ein US-Unternehmen, die Daten liegen in der EU. Übermittlungsweg: EU-US Data Privacy Framework oder Standardvertragsklauseln, laut AVV zu prüfen |
-| Cloudflare Turnstile (CAPTCHA) | IP-Adresse, Browsermerkmale bei Registrierung, Login, Passwort-Reset und Neuversand des Bestätigungslinks | _noch nicht ermittelt_ (globales Netz) | ☐ | Cloudflare, Inc. ist ein US-Unternehmen. Übermittlungsweg: EU-US Data Privacy Framework, laut AVV zu prüfen |
 | Google Workspace (Postfach `max@kopp-beratung.de`, SMTP-Versand der Bestätigungs- und Reset-Mails) | E-Mail-Adresse der Empfänger, Inhalt der Mail mit dem Link; Kopien liegen im Ordner „Gesendet“ des Postfachs | _noch nicht ermittelt_ (Datenregionen gibt es nur in bestimmten Workspace-Editionen) | ☐ | Vertragspartner für EU-Kunden ist Google Cloud EMEA Ltd. (Irland), Mutterkonzern Google LLC ist ein US-Unternehmen. Übermittlungsweg: EU-US Data Privacy Framework, laut AVV zu prüfen |
 
 Kein Hosting-Anbieter (kein Deployment), kein Error-Tracking, keine Analytics.
@@ -53,7 +52,6 @@ Kein Hosting-Anbieter (kein Deployment), kein Error-Tracking, keine Analytics.
 ## Offene Punkte
 
 - [ ] AVV mit Supabase abschließen (Organisationseinstellungen im Supabase-Dashboard).
-- [ ] AVV mit Cloudflare (Turnstile) abschließen, Region und Speicherdauer von Turnstile nachtragen.
 - [ ] AVV mit Google Workspace prüfen: Admin-Konsole → Konto → Rechtliches und Compliance → Zusatz zur Verarbeitung von Cloud-Daten akzeptiert?
 - [ ] Aufbewahrung der gesendeten Bestätigungs- und Reset-Mails im Ordner „Gesendet“ festlegen (z. B. regelmäßig löschen), sonst liegen dort Empfängeradressen unbegrenzt.
 - [ ] Speicherdauer der Supabase-Auth-Protokolle (`auth.audit_log_entries`, enthalten IP-Adressen) ermitteln, im Free Plan _noch nicht ermittelt_.

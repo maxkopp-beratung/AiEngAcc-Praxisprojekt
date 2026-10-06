@@ -27,11 +27,12 @@
 - Admin-Ansicht auf Konten anderer Nutzer
 - Impressum: Die App ist weder öffentlich erreichbar noch kommerziell
 - Inhalte der Dashboard-Abschnitte „Strompreise“ (PROJ-2) und „Meine Geräte“ (PROJ-3)
+- CAPTCHA bzw. Bot-Schutz auf den Formularen (Entscheidung vom 2026-10-06, Risiko im Entscheidungsprotokoll)
 
 ## Acceptance Criteria
 
 ### Registrierung
-- [ ] **AC-1** — Angenommen eine nicht angemeldete Person ist auf `/signup`, wenn sie eine gültige E-Mail-Adresse, ein Passwort mit 8 bis 72 Zeichen und optional einen Anzeigenamen eingibt, das CAPTCHA löst und „Registrieren“ klickt, dann wird ein unbestätigtes Konto angelegt, eine Bestätigungs-Mail an die Adresse verschickt und die Seite „Prüfe dein Postfach“ mit der eingegebenen Adresse angezeigt
+- [ ] **AC-1** — Angenommen eine nicht angemeldete Person ist auf `/signup`, wenn sie eine gültige E-Mail-Adresse, ein Passwort mit 8 bis 72 Zeichen und optional einen Anzeigenamen eingibt und „Registrieren“ klickt, dann wird ein unbestätigtes Konto angelegt, eine Bestätigungs-Mail an die Adresse verschickt und die Seite „Prüfe dein Postfach“ mit der eingegebenen Adresse angezeigt
 - [ ] **AC-2** — Angenommen eine Person ist auf `/signup`, wenn sie das Formular mit leerer oder ungültiger E-Mail-Adresse, einem Passwort unter 8 oder über 72 Zeichen oder einem Anzeigenamen über 50 Zeichen abschickt, dann erscheint unter jedem betroffenen Feld eine verständliche Fehlermeldung, und es wird weder ein Konto angelegt noch eine Mail verschickt. Das gilt auch, wenn die Prüfung im Browser umgangen wird
 - [ ] **AC-3** — Angenommen ein Konto wird angelegt, wenn die Registrierung abgeschlossen ist, dann existiert zu diesem Konto automatisch genau ein Profil mit dem angegebenen Anzeigenamen (oder ohne Namen, falls keiner angegeben wurde)
 - [ ] **AC-4** — Angenommen eine Person hat sich registriert, wenn sie innerhalb von 24 Stunden auf den Link in der Bestätigungs-Mail klickt, dann gilt ihre Adresse als bestätigt, sie ist angemeldet und landet auf `/dashboard`
@@ -42,8 +43,8 @@
 ### Anmeldung
 - [ ] **AC-8** — Angenommen eine Person hat ein bestätigtes Konto, wenn sie auf `/login` E-Mail-Adresse und Passwort korrekt eingibt und „Anmelden“ klickt, dann ist sie angemeldet und landet auf `/dashboard`
 - [ ] **AC-9** — Angenommen ein Login-Versuch schlägt fehl, wenn die Fehlermeldung angezeigt wird, dann lautet sie für eine unbekannte Adresse und für ein falsches Passwort gleich („E-Mail-Adresse oder Passwort ist falsch“) und verrät nicht, ob die Adresse registriert ist
-- [ ] **AC-10** — Angenommen es gab 5 fehlgeschlagene Login-Versuche für dieselbe E-Mail-Adresse innerhalb von 15 Minuten, wenn ein weiterer Versuch erfolgt (auch mit korrektem Passwort), dann wird er abgelehnt, bis das 15-Minuten-Fenster abgelaufen ist, und die Person sieht, in wie vielen Minuten sie es erneut versuchen kann
-- [ ] **AC-11** — Angenommen es gab 20 fehlgeschlagene Login-Versuche von derselben IP-Adresse innerhalb von 15 Minuten (egal für welche Adressen), wenn von dieser IP-Adresse ein weiterer Versuch erfolgt, dann wird er abgelehnt, bis das Fenster abgelaufen ist, mit derselben Art Hinweis wie in AC-10
+- [ ] **AC-10** — Angenommen es gab 5 fehlgeschlagene Login-Versuche für dieselbe E-Mail-Adresse innerhalb von 15 Minuten, wenn über die Anmeldeseite von WattWann ein weiterer Versuch erfolgt (auch mit korrektem Passwort), dann wird er abgelehnt, bis das 15-Minuten-Fenster abgelaufen ist, und die Person sieht, in wie vielen Minuten sie es erneut versuchen kann
+- [ ] **AC-11** — Angenommen es gab 20 fehlgeschlagene Login-Versuche von derselben IP-Adresse innerhalb von 15 Minuten (egal für welche Adressen), wenn von dieser IP-Adresse über die Anmeldeseite von WattWann ein weiterer Versuch erfolgt, dann wird er abgelehnt, bis das Fenster abgelaufen ist, mit derselben Art Hinweis wie in AC-10
 - [ ] **AC-12** — Angenommen eine Person ist angemeldet, wenn sie den Browser schließt und WattWann später wieder öffnet, dann ist sie weiterhin angemeldet, bis sie sich selbst abmeldet
 
 ### Weiterleitungen
@@ -59,12 +60,12 @@
 - [ ] **AC-18** — Angenommen eine Person ist angemeldet, wenn sie über „Anzeigename ändern“ einen neuen Namen mit 1 bis 50 Zeichen speichert oder das Feld leert, dann wird der Name gespeichert bzw. entfernt, die Kopfzeile zeigt sofort den neuen Stand, und eine kurze Bestätigung erscheint
 
 ### Passwort vergessen
-- [ ] **AC-19** — Angenommen eine Person ist auf `/login`, wenn sie „Passwort vergessen?“ klickt, ihre E-Mail-Adresse eingibt, das CAPTCHA löst und abschickt, dann erscheint immer dieselbe Meldung („Falls ein Konto mit dieser Adresse existiert, haben wir dir einen Link geschickt“), egal ob die Adresse registriert ist. Bei einem bestehenden Konto geht ein Reset-Link an die Adresse
+- [ ] **AC-19** — Angenommen eine Person ist auf `/login`, wenn sie „Passwort vergessen?“ klickt, ihre E-Mail-Adresse eingibt und abschickt, dann erscheint immer dieselbe Meldung („Falls ein Konto mit dieser Adresse existiert, haben wir dir einen Link geschickt“), egal ob die Adresse registriert ist. Bei einem bestehenden Konto geht ein Reset-Link an die Adresse
 - [ ] **AC-20** — Angenommen eine Person hat einen Reset-Link erhalten, wenn sie ihn innerhalb von 1 Stunde öffnet und ein neues Passwort mit 8 bis 72 Zeichen speichert, dann gilt das neue Passwort, das alte nicht mehr, sie ist angemeldet, landet auf `/dashboard` und sieht eine kurze Bestätigung
 - [ ] **AC-21** — Angenommen ein Reset-Link ist abgelaufen oder wurde schon benutzt, wenn die Person ihn öffnet, dann sieht sie „Dieser Link ist ungültig oder abgelaufen“ und kann direkt einen neuen anfordern
 
 ### Schutz vor automatisierten Anfragen
-- [ ] **AC-22** — Angenommen ein automatisiertes Skript ruft Registrierung, Login, „Passwort vergessen“ oder „Link erneut senden“ auf, wenn es dabei kein gelöstes CAPTCHA mitschickt, dann wird die Anfrage serverseitig abgelehnt. Das gilt auch, wenn das Skript die Oberfläche von WattWann umgeht und den Anmeldedienst direkt aufruft. Für normale Nutzer läuft das CAPTCHA meist unsichtbar im Hintergrund (kleines Prüffeld), eine Aufgabe erscheint nur bei Verdacht
+- ~~**AC-22** — Angenommen ein automatisiertes Skript ruft Registrierung, Login, „Passwort vergessen“ oder „Link erneut senden“ auf, wenn es dabei kein gelöstes CAPTCHA mitschickt, dann wird die Anfrage serverseitig abgelehnt. Das gilt auch, wenn das Skript die Oberfläche von WattWann umgeht und den Anmeldedienst direkt aufruft. Für normale Nutzer läuft das CAPTCHA meist unsichtbar im Hintergrund (kleines Prüffeld), eine Aufgabe erscheint nur bei Verdacht~~ — _Entfallen am 2026-10-06: kein CAPTCHA, siehe Entscheidungsprotokoll. Die ID wird nicht neu vergeben._
 
 ### Datentrennung
 - [ ] **AC-23** — Angenommen es gibt zwei Konten A und B, wenn A versucht, das Profil von B zu lesen oder zu ändern, auch direkt über die Datenschnittstelle ohne die Oberfläche, dann erhält A keine Daten von B, und an B ändert sich nichts
@@ -72,7 +73,7 @@
 
 ### Datenschutz (aus dem `/dsgvo`-Check)
 - [ ] **AC-25** — Angenommen eine Person ist angemeldet, wenn sie im Menü „Konto löschen“ wählt und die Rückfrage bestätigt, dann werden ihr Konto, ihr Profil und alle zugehörigen Daten (auch Geräte aus späteren Features) sofort und endgültig gelöscht, sie ist abgemeldet, landet auf `/login` und sieht den Hinweis „Dein Konto wurde gelöscht“. _(Art. 17 DSGVO)_
-- [ ] **AC-26** — Angenommen eine Person ist angemeldet oder nicht, wenn sie auf `/login`, `/signup` oder im Dashboard-Menü „Datenschutz“ klickt, dann öffnet sich die Seite `/datenschutz` ohne Login. Sie nennt den Verantwortlichen, die Kontaktadresse max@kopp-beratung.de, welche Daten zu welchem Zweck gespeichert werden, die Speicherdauer, die beteiligten Dienste mit Region (Supabase in Frankfurt, CAPTCHA-Anbieter) und die Rechte auf Auskunft, Berichtigung, Löschung, Übertragbarkeit und Widerspruch. Anfragen werden innerhalb eines Monats beantwortet. Das Registrierungsformular verweist neben dem Button auf diese Seite. _(Art. 13, Art. 12 Abs. 3 DSGVO)_
+- [ ] **AC-26** — Angenommen eine Person ist angemeldet oder nicht, wenn sie auf `/login`, `/signup` oder im Dashboard-Menü „Datenschutz“ klickt, dann öffnet sich die Seite `/datenschutz` ohne Login. Sie nennt den Verantwortlichen, die Kontaktadresse max@kopp-beratung.de, welche Daten zu welchem Zweck gespeichert werden, die Speicherdauer, die beteiligten Dienste mit Region (Supabase in Frankfurt, Google Workspace für den Mailversand) und die Rechte auf Auskunft, Berichtigung, Löschung, Übertragbarkeit und Widerspruch. Anfragen werden innerhalb eines Monats beantwortet. Das Registrierungsformular verweist neben dem Button auf diese Seite. _(Art. 13, Art. 12 Abs. 3 DSGVO)_
 - [ ] **AC-27** — Angenommen ein Konto wurde vor mehr als 7 Tagen angelegt und nie bestätigt, wenn diese Frist abläuft, dann werden das Konto und sein Profil automatisch gelöscht. _(Art. 5 Abs. 1 lit. e DSGVO)_
 
 ## Edge Cases
@@ -121,6 +122,7 @@
 | Kontolöschung sofort und endgültig, in der App | Recht auf Löschung (Art. 17 DSGVO), ohne manuellen Aufwand. Es gibt keine gesetzlichen Aufbewahrungspflichten, die dagegen sprechen | 2026-10-06 |
 | Kontaktadresse für Datenschutzanfragen: max@kopp-beratung.de | Vom Verantwortlichen festgelegt. Sie steht in den Datenschutzhinweisen (AC-26) | 2026-10-06 |
 | Unbestätigte Konten werden nach 7 Tagen gelöscht | Speicherbegrenzung: Eine nie bestätigte Adresse gehört womöglich gar nicht der Person, die sie eingegeben hat | 2026-10-06 |
-| CAPTCHA (meist unsichtbar) auch beim Login und bei „Link erneut senden“, ersetzt „nicht beim Login“ | In `/architecture` erkannt: Ein CAPTCHA schützt nur, wenn der Anmeldedienst es selbst prüft, und der prüft es dann für alle diese Formulare. Ohne das könnte ein Skript CAPTCHA und Login-Sperre umgehen. Weil es meist unsichtbar läuft, bleibt die Hürde beim Login klein | 2026-10-06 |
+| ~~CAPTCHA (meist unsichtbar) auch beim Login und bei „Link erneut senden“, ersetzt „nicht beim Login“~~ (ersetzt am 2026-10-06, siehe unten) | In `/architecture` erkannt: Ein CAPTCHA schützt nur, wenn der Anmeldedienst es selbst prüft, und der prüft es dann für alle diese Formulare. Ohne das könnte ein Skript CAPTCHA und Login-Sperre umgehen. Weil es meist unsichtbar läuft, bleibt die Hürde beim Login klein | 2026-10-06 |
 | Schon benutzter und abgelaufener Bestätigungslink führen zur selben Hinweisseite (EC-2) | Der Anmeldedienst kann „schon benutzt“ und „abgelaufen“ nicht unterscheiden. Die gemeinsame Seite bietet beide Auswege: anmelden oder neuen Link anfordern | 2026-10-06 |
 | Bestätigungs- und Reset-Mails kommen von max@kopp-beratung.de (Einzelabsender) | Schlank: kein zusätzlicher Mail-Dienst, kein weiteres Konto. Dafür landen die Mails eher im Spam-Ordner | 2026-10-06 |
+| Kein CAPTCHA, AC-22 entfällt. Ersetzt beide CAPTCHA-Entscheidungen oben | Das Projekt dient nur der Prüfung durch den Ersteller der Schulungsunterlagen. Zwei zusätzliche Dienstkonten und die Einrichtung stehen dazu in keinem Verhältnis. **Bewusst in Kauf genommenes Risiko:** Ein Skript kann massenhaft Konten anlegen und Mails auslösen. Wer den Anmeldedienst direkt statt über WattWann aufruft, umgeht außerdem die eigene Login-Sperre (AC-10, AC-11). Dann greifen nur die festen Limits von Supabase pro IP-Adresse und das Mail-Limit von 30 pro Stunde. Ein Datenabfluss ist dadurch nicht möglich: RLS (AC-23, AC-24) schützt die Daten weiterhin | 2026-10-06 |
