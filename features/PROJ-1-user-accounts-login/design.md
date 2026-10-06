@@ -298,7 +298,7 @@ Abweichungen und Ergänzungen gegenüber dem Design oben, damit `/qa` und späte
   - `src/app/icon.svg` (App-Icon)
   - `supabase/templates/*.html` (deutsche Mail-Vorlagen zum Einfügen in Supabase, T24/T25)
 - **Design-System angewendet:** Die Tokens aus `docs/design-system.md` stehen jetzt in `src/app/globals.css` (hell und dunkel). Das Theme folgt dem Betriebssystem über `next-themes`. Der primäre Button nutzt `primary-hover`/`primary-active`.
-- **Formulare:** Server Actions mit `useActionState`. Die Prüfung läuft serverseitig mit Zod, Feldfehler kommen vom Server zurück. Auf `react-hook-form` wurde verzichtet, eine zweite Validierung im Browser bringt hier keinen Mehrwert.
+- **Formulare:** Server Actions mit `useActionState`. Die Prüfung läuft serverseitig mit Zod, Feldfehler kommen vom Server zurück. Auf `react-hook-form` wurde verzichtet, eine zweite Validierung im Browser bringt hier keinen Mehrwert. Vom Nutzer bestätigt (2026-10-06).
 - **Service-Rolle ohne Rechte auf `profiles`:** Sie braucht dort keine, das Löschen läuft über die Kaskade von `auth.users`. Das ist das Prinzip der geringsten Rechte.
 - **Neuversand und Mail-Limit:** Meldet Supabase beim Neuversand „zu häufig“, erscheint „Bitte warte noch kurz“. Beim Passwort-Reset bleibt die Antwort auch dann neutral, weil eine abweichende Antwort dort verraten würde, dass die Adresse ein Konto hat.
 - **Integrationstest gegen das echte Projekt:** `src/lib/supabase/rls.integration.test.ts` liest `.env.local` selbst ein (Next.js lädt sie im Testmodus nicht). Er legt zwei Wegwerf-Konten an und löscht sie wieder. Ohne Schlüssel wird er übersprungen.
