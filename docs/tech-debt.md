@@ -21,6 +21,7 @@ smell never becomes `Accepted`: it is a finding for `/security-check` or the own
 
 | ID | Status | Path | What | Why it matters | Severity | Owning features | Found (commit) | Resolved (commit) |
 |----|--------|------|------|----------------|----------|-----------------|----------------|-------------------|
+| TD-1 | Open | next.config.ts | Content-Security-Policy mit Nonce fehlt; nur die vier Basis-Header werden gesetzt | CSP ist der stärkste Header gegen XSS; braucht Nonces und eine Freigabe für Cloudflare Turnstile | Medium | PROJ-1 | 1db818a (Design PROJ-1) | |
 
 ## Archive (Resolved)
 _Moved here by `/cleanup`, one line each: ID, path, what, resolving commit._

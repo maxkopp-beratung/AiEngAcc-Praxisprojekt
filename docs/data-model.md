@@ -10,15 +10,17 @@
 
 | Entität | Was sie darstellt | Gehört wem / wer sieht sie | Feature |
 |---------|-------------------|----------------------------|---------|
-| `profiles` | Das Profil zu einem Konto. Es wird bei der Registrierung automatisch angelegt und mit dem Supabase-Auth-Nutzer verknüpft. | nur der Nutzer selbst (RLS) | PROJ-1 |
+| `profiles` | Das Profil zu einem Konto mit optionalem Anzeigenamen. Es wird bei der Registrierung automatisch angelegt und mit dem Supabase-Auth-Nutzer verknüpft; die E-Mail-Adresse bleibt beim Auth-Nutzer. | nur der Nutzer selbst, der es lesen und den Anzeigenamen ändern kann (RLS) | PROJ-1 |
+| `login_failures` *(intern)* | Fehlgeschlagene Login-Versuche als Hashes von E-Mail und IP, für die Login-Sperre. Höchstens 15 Minuten gespeichert. | niemand über die App, nur der Server (Service-Rolle) | PROJ-1 |
 | `devices` | Ein Gerät des Nutzers mit Name und Laufzeit, z. B. „Waschmaschine, 2:30 h“ | nur der Nutzer selbst, der es lesen, anlegen, ändern und löschen kann (RLS) | PROJ-3 |
 | Strompreise *(nicht gespeichert)* | Day-ahead-Preise im 15-Minuten-Raster. Sie werden live von Energy-Charts geholt und nur kurz serverseitig zwischengespeichert. | öffentlich, für alle angemeldeten Nutzer gleich | PROJ-2 |
 | Startfenster-Empfehlung *(nicht gespeichert)* | Wird bei jedem Aufruf aus Preisen und Gerätelaufzeit neu berechnet | nur für den Nutzer, dem das Gerät gehört | PROJ-3 |
 
 ## Beziehungen
 
-- Jeder Auth-Nutzer hat genau ein Profil.
+- Jeder Auth-Nutzer hat genau ein Profil. Wird der Auth-Nutzer gelöscht (vom Nutzer selbst oder nach 7 Tagen ohne Bestätigung), verschwindet das Profil mit.
 - Ein Profil hat beliebig viele Geräte, jedes Gerät gehört genau einem Profil. Wird das Konto gelöscht, verschwinden auch seine Geräte.
+- `login_failures` hängt an keinem Konto: Es zählt Versuche pro E-Mail-Adresse, auch für Adressen ohne Konto.
 - Strompreise hängen an keinem Nutzer. Sie werden erst bei der Berechnung einer Empfehlung mit der Laufzeit eines Geräts kombiniert.
 
 ## Diagramm

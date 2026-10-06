@@ -11,7 +11,7 @@
 **Anwendbares Recht:** DSGVO (EU/DE), siehe `docs/law/gdpr.md`
 **Datenschutz-Haltung:** lean (festgelegt in `docs/PRD.md` → Rahmenbedingungen)
 **Verantwortlicher:** Maximilian Kopp, Privatperson (privates Lernprojekt im AI Engineering Accelerator). Kontaktadresse für Datenschutzanfragen: max@kopp-beratung.de
-**Zuletzt geprüft:** 2026-10-06 (`/dsgvo PROJ-1`)
+**Zuletzt geprüft:** 2026-10-06 (`/dsgvo PROJ-1`, ergänzt durch `/architecture PROJ-1`)
 
 **Betrieb:** Die App läuft nur lokal (`npm run dev`), die Datenbank liegt in Supabase Cloud. Neben dem Verantwortlichen registrieren sich auch andere echte Personen mit ihren echten E-Mail-Adressen. Ihnen gegenüber gelten die Pflichten deshalb voll, auch wenn die App nicht öffentlich erreichbar ist.
 
@@ -21,8 +21,8 @@
 
 | Zweck | Daten | Von wem | Rechtsgrundlage | Speicherdauer | Beteiligte Auftragsverarbeiter |
 |-------|-------|---------|-----------------|---------------|--------------------------------|
-| Benutzerkonten betreiben (Registrierung, Login, Bestätigungs- und Reset-Mails) – PROJ-1 | E-Mail-Adresse, Passwort-Hash, optionaler Anzeigename, Zeitpunkte von Registrierung, Bestätigung und letztem Login, Sitzungs-Token | registrierte Nutzer | Art. 6 Abs. 1 lit. b DSGVO (Vertrag: Ohne Konto kann die App die eigenen Geräte nicht speichern) | bis zur Kontolöschung durch den Nutzer; unbestätigte Konten werden nach 7 Tagen automatisch gelöscht | Supabase |
-| Login und Formulare vor Missbrauch schützen (Sperre nach Fehlversuchen, CAPTCHA) – PROJ-1 | E-Mail-Adresse und IP-Adresse in Zählern für Fehlversuche; IP-Adresse und Browsermerkmale beim CAPTCHA | alle, die die Login-, Registrierungs- oder Reset-Formulare nutzen | Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse: Schutz der Konten vor Passwort-Raten und Massenregistrierung) | Fehlversuch-Zähler nur so lange, wie das Sperrfenster läuft (15 Minuten); beim CAPTCHA nach den Regeln des Anbieters, _noch nicht ermittelt_ | Supabase, CAPTCHA-Anbieter (wird in `/architecture` gewählt) |
+| Benutzerkonten betreiben (Registrierung, Login, Bestätigungs- und Reset-Mails) – PROJ-1 | E-Mail-Adresse, Passwort-Hash, optionaler Anzeigename, Zeitpunkte von Registrierung, Bestätigung und letztem Login, Sitzungs-Token | registrierte Nutzer | Art. 6 Abs. 1 lit. b DSGVO (Vertrag: Ohne Konto kann die App die eigenen Geräte nicht speichern) | bis zur Kontolöschung durch den Nutzer; unbestätigte Konten werden nach 7 Tagen automatisch gelöscht | Supabase, Mail-Anbieter von kopp-beratung.de (Mailversand) |
+| Login und Formulare vor Missbrauch schützen (Sperre nach Fehlversuchen, CAPTCHA) – PROJ-1 | E-Mail-Adresse und IP-Adresse in Zählern für Fehlversuche; IP-Adresse und Browsermerkmale beim CAPTCHA | alle, die die Login-, Registrierungs- oder Reset-Formulare nutzen | Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse: Schutz der Konten vor Passwort-Raten und Massenregistrierung) | Fehlversuch-Zähler (nur als SHA-256-Hashes von E-Mail und IP) höchstens 15 Minuten; beim CAPTCHA nach den Regeln von Cloudflare, _noch nicht ermittelt_ | Supabase, Cloudflare (Turnstile) |
 
 ## Besondere Kategorien
 
@@ -32,8 +32,9 @@
 
 | Dienst | Was er verarbeitet | Region | AVV unterzeichnet | Außerhalb angemessener Länder? |
 |--------|--------------------|--------|-------------------|--------------------------------|
-| Supabase (Auth, Postgres, eingebauter Mailversand) | alle Kontodaten, Sitzungen, Auth-Protokolle mit IP-Adressen, versendete Bestätigungs- und Reset-Mails | eu-central-1 (Frankfurt) | ☐ | Supabase Inc. ist ein US-Unternehmen, die Daten liegen in der EU. Übermittlungsweg: EU-US Data Privacy Framework oder Standardvertragsklauseln, laut AVV zu prüfen |
-| CAPTCHA-Anbieter (Cloudflare Turnstile oder hCaptcha, Entscheidung in `/architecture`) | IP-Adresse, Browsermerkmale beim Lösen des CAPTCHAs | _noch nicht ermittelt_ | ☐ | beide sind US-Unternehmen; Übermittlungsweg nach der Wahl eintragen |
+| Supabase (Auth, Postgres) | alle Kontodaten, Sitzungen, Auth-Protokolle mit IP-Adressen, Hashes fehlgeschlagener Login-Versuche | eu-central-1 (Frankfurt) | ☐ | Supabase Inc. ist ein US-Unternehmen, die Daten liegen in der EU. Übermittlungsweg: EU-US Data Privacy Framework oder Standardvertragsklauseln, laut AVV zu prüfen |
+| Cloudflare Turnstile (CAPTCHA) | IP-Adresse, Browsermerkmale bei Registrierung, Login, Passwort-Reset und Neuversand des Bestätigungslinks | _noch nicht ermittelt_ (globales Netz) | ☐ | Cloudflare, Inc. ist ein US-Unternehmen. Übermittlungsweg: EU-US Data Privacy Framework, laut AVV zu prüfen |
+| Mail-Anbieter des Postfachs `max@kopp-beratung.de` (SMTP-Versand der Bestätigungs- und Reset-Mails) | E-Mail-Adresse der Empfänger, Inhalt der Mail mit dem Link | _noch nicht ermittelt_ | ☐ | _noch nicht ermittelt_ |
 
 Kein Hosting-Anbieter (kein Deployment), kein Error-Tracking, keine Analytics.
 
@@ -52,9 +53,9 @@ Kein Hosting-Anbieter (kein Deployment), kein Error-Tracking, keine Analytics.
 ## Offene Punkte
 
 - [ ] AVV mit Supabase abschließen (Organisationseinstellungen im Supabase-Dashboard).
-- [ ] CAPTCHA-Anbieter wählen (`/architecture` PROJ-1), Region, Speicherdauer und AVV hier nachtragen.
+- [ ] AVV mit Cloudflare (Turnstile) abschließen, Region und Speicherdauer von Turnstile nachtragen.
+- [ ] Mail-Anbieter von `kopp-beratung.de` benennen und den AVV prüfen (besteht für ein geschäftliches Postfach oft schon).
 - [ ] Speicherdauer der Supabase-Auth-Protokolle (`auth.audit_log_entries`, enthalten IP-Adressen) ermitteln, im Free Plan _noch nicht ermittelt_.
-- [ ] Falls der eingebaute Mailversand von Supabase für die Tests mit anderen Personen nicht reicht und ein eigener SMTP-Dienst dazukommt: Diesen als weiteren Auftragsverarbeiter hier eintragen.
 
 ## Für einen Anwalt / Datenschutzbeauftragten
 
