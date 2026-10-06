@@ -91,7 +91,7 @@
 - **Browser:** aktuelle Versionen von Chrome, Firefox, Safari und Edge, mobil und Desktop.
 
 ## Offene Fragen
-- [ ] Nutzungsbedingungen und eventuelle Abfragegrenzen der Energy-Charts-API prüfen – entscheidet in `/architecture` mit, wie lange zwischengespeichert wird.
+- [x] Nutzungsbedingungen und eventuelle Abfragegrenzen der Energy-Charts-API prüfen – entscheidet in `/architecture` mit, wie lange zwischengespeichert wird. → Beantwortet in `design.md` (2 Anfragen/Minute pro IP, 429 mit `Retry-After`, CC BY 4.0 mit Nennung von Energy-Charts.info).
 
 ## Entscheidungslog
 
