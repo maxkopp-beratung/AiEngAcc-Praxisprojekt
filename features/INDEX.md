@@ -25,7 +25,7 @@
 
 | ID | Feature | Description | Status | Spec | Created |
 |----|---------|-------------|--------|------|---------|
-| PROJ-1 | Benutzerkonto & Login | Registrierung, Login und Logout per E-Mail und Passwort über Supabase; `/dashboard` ist geschützt, jeder Nutzer sieht nur seine eigenen Daten (RLS). | Roadmap | — | 2026-10-06 |
+| PROJ-1 | Benutzerkonto & Login | Registrierung, Login und Logout per E-Mail und Passwort über Supabase; `/dashboard` ist geschützt, jeder Nutzer sieht nur seine eigenen Daten (RLS). | Approved | [PROJ-1-user-accounts-login](PROJ-1-user-accounts-login/) | 2026-10-06 |
 | PROJ-2 | Strompreise | Zeigt die Day-ahead-Börsenpreise für heute und morgen in ct/kWh mit markiertem günstigstem und teuerstem Zeitpunkt, serverseitig von der Energy-Charts API. | Roadmap | — | 2026-10-06 |
 | PROJ-3 | Geräte & Startfenster | Geräte mit Laufzeit anlegen, bearbeiten und löschen und pro Gerät das günstigste zusammenhängende Startfenster im Vergleich zu „sofort starten“ sehen. | Roadmap | — | 2026-10-06 |
 

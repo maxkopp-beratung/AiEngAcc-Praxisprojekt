@@ -16,11 +16,21 @@ Owner: PROJ-1 (Benutzerkonto & Login) – liefert den geschützten Bereich `/das
 |---------|------------------|--------------|---------|
 | `/login` | anmelden | nicht angemeldet | PROJ-1 |
 | `/signup` | registrieren | nicht angemeldet | PROJ-1 |
+| `/signup/check-email` | Hinweis „Prüfe dein Postfach“, Bestätigungslink erneut senden | nicht angemeldet | PROJ-1 |
+| `/forgot-password` | Reset-Link anfordern | alle | PROJ-1 |
+| `/reset-password` | neues Passwort setzen | nur mit Reset-Sitzung | PROJ-1 |
+| `/auth/confirm` | (Endpunkt) Link aus der Mail prüfen und weiterleiten | alle | PROJ-1 |
+| `/auth/link-invalid` | Hinweis „Link ungültig oder abgelaufen“, neuen Link anfordern | alle | PROJ-1 |
+| `/datenschutz` | Datenschutzhinweise lesen | alle | PROJ-1 |
 | `/dashboard` | Preise ansehen, Geräte verwalten, Empfehlungen sehen | angemeldet | Rahmen: PROJ-1 · Abschnitt „Strompreise“: PROJ-2 · Abschnitt „Meine Geräte“: PROJ-3 |
 
 ## Layout
 
-Kopfzeile mit App-Name und Abmelden, darunter der Inhalt einspaltig. Keine Seitenleiste.
+- **Dashboard:** Kopfzeile (`AppHeader`) mit Logo und Schriftzug links (Link zur Übersicht) und einem Menü rechts. Das Menü zeigt den Anzeigenamen oder die E-Mail-Adresse und enthält „Anzeigename ändern“, „Datenschutz“, „Konto löschen“ und „Abmelden“. Darunter steht der Inhalt einspaltig mit dem Seitentitel „Übersicht“, PROJ-2 und PROJ-3 hängen ihre Abschnitte darunter ein. Keine Seitenleiste.
+- **Auth-Seiten** (`/login`, `/signup`, Reset, Link-Hinweise): ohne Kopfzeile, eine zentrierte Karte (`AuthCard`) mit Logo oben, unten Links zu „Datenschutz“ und zur jeweils anderen Auth-Seite.
+- **`/datenschutz`:** ohne Kopfzeile, einspaltiger Text mit Link „Zurück“.
+- **Weiterleitungen:** `/` führt angemeldet zu `/dashboard`, sonst zu `/login`. Wer nicht angemeldet `/dashboard` aufruft, landet auf `/login` und danach wieder dort. Wer angemeldet `/login` oder `/signup` aufruft, landet auf `/dashboard`.
+- **Rückmeldungen:** ein Toaster für die ganze App (im Root-Layout).
 
 ## Abschnitts-Muster
 
