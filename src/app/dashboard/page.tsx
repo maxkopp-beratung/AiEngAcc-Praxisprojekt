@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PasswordChangedToast } from "@/components/account-dialogs";
+import { DevicesSection } from "@/components/devices/devices-section";
 import { LivePricesProvider } from "@/components/prices/live-prices-provider";
 import { PriceSection } from "@/components/prices/price-section";
 
@@ -14,7 +15,7 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-semibold">Übersicht</h1>
       <LivePricesProvider>
         <PriceSection />
-        <p className="text-muted-foreground">Hier siehst du bald deine Geräte.</p>
+        <DevicesSection />
       </LivePricesProvider>
       <Suspense fallback={null}>
         <PasswordChangedToast />
